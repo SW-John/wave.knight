@@ -1553,18 +1553,25 @@ addEventListener('keyup', e => { keys[e.code] = false; });
 function setNdc(e) { const r = canvas.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); }
 canvas.addEventListener('pointermove', setNdc);
 canvas.addEventListener('pointerdown', e => {
-  if (e.pointerType === 'touch') { enableTouch(); return; }
+  if (e.pointerType === 'touch') enableTouch();
+  if (touchMode && e.pointerType === 'touch') return;
   setNdc(e); if (e.button === 0) { mouseDown = true; if (state === 'run') useSkill('atk'); }
 });
 // ----- touch controls: virtual joystick + tappable skill buttons -----
 let touchMode = false, attackHeld = false;
 const stickVec = new THREE.Vector2(), lastMove = V3(0, 0, -1);
+// phones and tablets only: a touchscreen PC keeps the keyboard-and-mouse layout
+const UA_MOBILE = /Android|iPhone|iPad|iPod|Mobile|Silk|Kindle/i.test(navigator.userAgent)
+  || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+// any mouse or touchpad on the device (a touch laptop has one) means desktop controls
+const HAS_FINE = matchMedia('(any-pointer: fine)').matches || matchMedia('(any-hover: hover)').matches;
+const IS_MOBILE = UA_MOBILE || (!HAS_FINE && matchMedia('(pointer: coarse)').matches);
 function enableTouch() {
-  if (touchMode) return;
+  if (touchMode || !IS_MOBILE) return;
   touchMode = true; stage.classList.add('touch');
   $('selHint').textContent = '영웅을 두 번 누르면 시작 · 왼쪽 조이스틱으로 이동 · 오른쪽 버튼으로 공격과 기술';
 }
-if (matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches) enableTouch();
+enableTouch();
 addEventListener('pointerdown', e => { if (e.pointerType === 'touch') enableTouch(); }, { capture: true });
 (function joystick() {
   const zone = $('stickZone'), stick = $('stick'), knob = $('knob');
@@ -1598,8 +1605,8 @@ addEventListener('pointerdown', e => { if (e.pointerType === 'touch') enableTouc
 function bindSlot(id, down, up) {
   const el = $(id);
   el.addEventListener('pointerdown', e => {
-    if (!touchMode && e.pointerType !== 'touch') return;
-    e.preventDefault(); e.stopPropagation(); enableTouch();
+    if (!touchMode) return;
+    e.preventDefault(); e.stopPropagation();
     try { el.setPointerCapture(e.pointerId); } catch (_) {}
     el.classList.add('held'); down();
   });
