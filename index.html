@@ -226,6 +226,10 @@ html, body { touch-action: manipulation; }
 .stage, .stage * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .stage canvas#c, .stage .stickzone, .stage.touch .slot { touch-action: none; }
 .stage .ov { touch-action: pan-y; }
+.songtag { position: absolute; left: 1em; top: 4.6em; padding: .3em .8em; border-radius: 99px; background: rgba(24,33,28,.72); color: #fff;
+  font-size: .82em; pointer-events: none; opacity: 0; transform: translateY(-4px); transition: opacity .4s, transform .4s; white-space: nowrap; }
+.songtag.on { opacity: 1; transform: none; }
+.songtag b { color: var(--gold); font-weight: 600; margin-right: .35em; }
 </style>
 
 <div class="wrap">
@@ -269,6 +273,7 @@ html, body { touch-action: manipulation; }
       <div class="slot ult" id="slot-ult"><div class="fill" id="ultFill"></div><kbd>SPACE</kbd><span id="ultName">필살기</span><div class="pct" id="ultPct">0%</div></div>
     </div>
 
+    <div class="songtag" id="songTag"></div>
     <div class="banner" id="banner"></div>
     <div class="hurt" id="hurt"></div>
     <div class="flash" id="flash"></div>
@@ -402,91 +407,210 @@ const SFX = (function () {
     } catch (_) { ctx = null; }
     startMusic();
   }
-  // ---------- background music: a looping 8-bar adventure theme (A minor, 128 BPM) ----------
-  let bgmGain = null, musicOn = true, mode = 'menu', timer = null, step = 0, nextT = 0;
-  const SD = 60 / 128 / 2;
+  // ---------- background music: a small song book, one looping 8-bar tune per scene ----------
+  let bgmGain = null, songGain = null, musicOn = true, timer = null, step = 0, nextT = 0, cur = null, want = 'title';
   const NOTE = { C: 0, 'C#': 1, D: 2, 'D#': 3, E: 4, F: 5, 'F#': 6, G: 7, 'G#': 8, A: 9, 'A#': 10, B: 11 };
   const midi = s => { const m = s.match(/^([A-G]#?)(\d)$/); return NOTE[m[1]] + (+m[2] + 1) * 12; };
   const mhz = m => 440 * Math.pow(2, (m - 69) / 12);
   const hz = s => mhz(midi(s));
-  const MEL = ('A4 - E5 - D5 C5 B4 C5  A4 - F4 - A4 C5 D5 C5  E5 - G5 - E5 D5 C5 D5  B4 - D5 - G4 - - -  ' +
-               'A4 - E5 - D5 C5 B4 C5  A4 - C5 - F5 E5 D5 C5  B4 C5 D5 - G5 F5 E5 D5  E5 - G#4 - B4 - E5 -').trim().split(/\s+/);
-  const ROOT = ['A2', 'F2', 'C3', 'G2', 'A2', 'F2', 'G2', 'E2'];
-  const CHORD = [['A3', 'C4', 'E4'], ['F3', 'A3', 'C4'], ['C4', 'E4', 'G4'], ['G3', 'B3', 'D4'], ['A3', 'C4', 'E4'], ['F3', 'A3', 'C4'], ['G3', 'B3', 'D4'], ['E3', 'G#3', 'B3']];
+  const seq = str => str.trim().split(/\s+/);
+  // ---- instruments (all play into the current song's gain) ----
   function voice(t, f, dur, type, vol, cut) {
     const o = ctx.createOscillator(), g = ctx.createGain(), fl = ctx.createBiquadFilter();
     o.type = type; o.frequency.setValueAtTime(f, t); fl.type = 'lowpass'; fl.frequency.value = cut;
     g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.012);
     g.gain.setTargetAtTime(vol * 0.55, t + 0.03, dur * 0.4); g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.08);
-    o.connect(fl).connect(g).connect(bgmGain); o.start(t); o.stop(t + dur + 0.12);
+    o.connect(fl).connect(g).connect(songGain); o.start(t); o.stop(t + dur + 0.12);
   }
-  // harmony voice: the nearest chord tone a third to a sixth below the melody note
-  function harmonyBelow(m, bar) {
-    const pcs = CHORD[bar].map(x => midi(x) % 12);
-    for (let k = 3; k <= 9; k++) if (pcs.includes((m - k + 120) % 12)) return m - k;
-    return m - 12;
+  function pluck(t, f, vol, type, cut, dur) {
+    const o = ctx.createOscillator(), g = ctx.createGain(), fl = ctx.createBiquadFilter(); dur = dur || 0.28;
+    o.type = type || 'triangle'; o.frequency.setValueAtTime(f, t); fl.type = 'lowpass'; fl.frequency.setValueAtTime(cut || 3200, t); fl.frequency.exponentialRampToValueAtTime(500, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(fl).connect(g).connect(songGain); o.start(t); o.stop(t + dur + 0.02);
   }
-  // soft sustained pad: two slightly detuned saws through a low-pass, slow attack
-  function pad(t, f, dur, vol) {
+  function organ(t, f, dur, vol) {
+    const g = ctx.createGain(), fl = ctx.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = 2400;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.03); g.gain.setValueAtTime(vol, t + Math.max(0.04, dur - 0.05)); g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.08);
+    fl.connect(g).connect(songGain);
+    [[1, 'sine', 1], [2, 'square', 0.18], [0.5, 'sine', 0.5]].forEach(([mul, type, v]) => { const o = ctx.createOscillator(), og = ctx.createGain(); o.type = type; o.frequency.setValueAtTime(f * mul, t); og.gain.value = v; o.connect(og).connect(fl); o.start(t); o.stop(t + dur + 0.1); });
+  }
+  function bell(t, f, vol) {
+    [[1, vol, 1.4], [2.76, vol * 0.35, 0.6], [5.4, vol * 0.12, 0.3]].forEach(([mul, v, d]) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(f * mul, t); g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g).connect(songGain); o.start(t); o.stop(t + d + 0.02); });
+  }
+  function brass(t, f, dur, vol) {
+    const g = ctx.createGain(), fl = ctx.createBiquadFilter(); fl.type = 'lowpass'; fl.Q.value = 2;
+    fl.frequency.setValueAtTime(350, t); fl.frequency.linearRampToValueAtTime(1900, t + 0.08); fl.frequency.setTargetAtTime(1100, t + 0.1, dur * 0.5);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.05); g.gain.setTargetAtTime(vol * 0.7, t + 0.08, dur * 0.5); g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.1);
+    fl.connect(g).connect(songGain);
+    for (const det of [-6, 6]) { const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(f, t); o.detune.value = det; o.connect(fl); o.start(t); o.stop(t + dur + 0.15); }
+  }
+  function flute(t, f, dur, vol) {
+    const o = ctx.createOscillator(), g = ctx.createGain(), lfo = ctx.createOscillator(), lg = ctx.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(f, t); lfo.frequency.value = 5.5; lg.gain.value = f * 0.006; lfo.connect(lg).connect(o.frequency);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.06); g.gain.setValueAtTime(vol * 0.85, t + Math.max(0.07, dur - 0.06)); g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.06);
+    o.connect(g).connect(songGain); o.start(t); lfo.start(t); o.stop(t + dur + 0.1); lfo.stop(t + dur + 0.1);
+  }
+  function pad(t, f, dur, vol, cut) {
     const g = ctx.createGain(), fl = ctx.createBiquadFilter();
-    fl.type = 'lowpass'; fl.frequency.value = 1100; fl.Q.value = 0.5;
+    fl.type = 'lowpass'; fl.frequency.value = cut || 1100; fl.Q.value = 0.5;
     g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.22);
     g.gain.setValueAtTime(vol, t + dur - 0.2); g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.15);
-    fl.connect(g).connect(bgmGain);
+    fl.connect(g).connect(songGain);
     for (const det of [-7, 7]) { const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(f, t); o.detune.value = det; o.connect(fl); o.start(t); o.stop(t + dur + 0.2); }
   }
-  function drumNoise(t, dur, vol, freq, type) {
+  function noiseHit(t, dur, vol, freq, type) {
     const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
     s.buffer = nbuf; f.type = type; f.frequency.value = freq;
     g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    s.connect(f).connect(g).connect(bgmGain); s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.02);
+    s.connect(f).connect(g).connect(songGain); s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.02);
   }
-  function kick(t) { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.12);
-    g.gain.setValueAtTime(0.42, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2); o.connect(g).connect(bgmGain); o.start(t); o.stop(t + 0.22); }
-  function tom(t, f) { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.6, t + 0.15);
-    g.gain.setValueAtTime(0.25, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18); o.connect(g).connect(bgmGain); o.start(t); o.stop(t + 0.2); }
-  function playStep(s, t) {
-    const bar = s >> 3, i = s & 7, battle = mode !== 'menu', boss = mode === 'boss';
-    const n = MEL[s];
-    if (n !== '-') {
-      let d = 1; while (MEL[(s + d) % 64] === '-' && d < 8) d++;
-      const m = midi(n), f = mhz(m), h = mhz(harmonyBelow(m, bar)), dur = d * SD * 0.95;
-      if (battle) {
-        voice(t, f, dur, 'square', 0.036, boss ? 3200 : 2600);
-        voice(t, h, dur, 'square', 0.022, 2000);
-        voice(t, f / 2, dur, 'triangle', 0.035, 1600);
-      } else {
-        voice(t, f, dur * 1.15, 'triangle', 0.05, 2200);
-        voice(t, h, dur * 1.15, 'triangle', 0.034, 1800);
-      }
-    }
-    const ch = CHORD[bar];
-    if (i === 0) {
-      const v = battle ? 0.011 : 0.015;
-      ch.forEach(x => pad(t, hz(x), SD * 8, v));
-      pad(t, hz(ROOT[bar]) * 2, SD * 8, v * 0.8);
-    }
-    if (battle) voice(t, hz(ch[i % 3]) * (i >= 4 ? 2 : 1), SD * 0.8, 'triangle', 0.016, 3000);
-    const r = hz(ROOT[bar]);
-    if (battle) { const m = [1, 0, 2, 0, 1.5, 0, 2, 1][i]; if (m) voice(t, r * m, SD * 0.9, 'triangle', 0.1, 900); }
-    else if (i === 0 || i === 4) voice(t, r, SD * 3.6, 'triangle', 0.06, 600);
-    if (battle) {
-      if (i === 0 || i === 4 || (boss && (i === 3 || i === 7))) kick(t);
-      if (i === 2 || i === 6) { drumNoise(t, 0.13, 0.16, 1800, 'bandpass'); tom(t, 230); }
-      drumNoise(t, 0.04, i % 2 ? 0.03 : 0.05, 7500, 'highpass');
-      if (boss && bar === 7 && i >= 4) tom(t, 170 - (i - 4) * 22);
-    } else if (i === 0 && bar % 2 === 0) drumNoise(t, 0.6, 0.02, 5000, 'highpass');
+  function kick(t, v) { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.12);
+    g.gain.setValueAtTime(v || 0.42, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22); o.connect(g).connect(songGain); o.start(t); o.stop(t + 0.24); }
+  function tom(t, f, v) { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.6, t + 0.15);
+    g.gain.setValueAtTime(v || 0.25, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2); o.connect(g).connect(songGain); o.start(t); o.stop(t + 0.22); }
+  const snare = (t, v) => { noiseHit(t, 0.14, v || 0.16, 1800, 'bandpass'); tom(t, 200, 0.12); };
+  const hat = (t, v) => noiseHit(t, 0.04, v || 0.04, 7500, 'highpass');
+  const clap = (t, v) => { for (let k = 0; k < 3; k++) noiseHit(t + k * 0.012, 0.08, (v || 0.12) * (1 - k * 0.2), 1300, 'bandpass'); };
+  const wood = (t, f, v) => pluck(t, f || 1050, v || 0.08, 'triangle', 6000, 0.06);
+  // ---- songs ----
+  function noteAt(S, s) { const n = S.mel[s]; if (n === '-') return null; let d = 1; while (S.mel[(s + d) % 64] === '-' && d < 8) d++; return { m: midi(n), d }; }
+  function harmonyBelow(S, m, bar) {
+    const pcs = S.chords[bar].map(x => midi(x) % 12);
+    for (let k = 3; k <= 9; k++) if (pcs.includes((m - k + 120) % 12)) return m - k;
+    return m - 12;
   }
+  const SONGS = {
+    title: { name: '마을의 아침', bpm: 112,
+      mel: seq('A4 - E5 - D5 C5 B4 C5  A4 - F4 - A4 C5 D5 C5  E5 - G5 - E5 D5 C5 D5  B4 - D5 - G4 - - -  A4 - E5 - D5 C5 B4 C5  A4 - C5 - F5 E5 D5 C5  B4 C5 D5 - G5 F5 E5 D5  E5 - G#4 - B4 - E5 -'),
+      roots: ['A2', 'F2', 'C3', 'G2', 'A2', 'F2', 'G2', 'E2'],
+      chords: [['A3', 'C4', 'E4'], ['F3', 'A3', 'C4'], ['C4', 'E4', 'G4'], ['G3', 'B3', 'D4'], ['A3', 'C4', 'E4'], ['F3', 'A3', 'C4'], ['G3', 'B3', 'D4'], ['E3', 'G#3', 'B3']],
+      play(S, s, t, bar, i, SD) {
+        const n = noteAt(S, s);
+        if (n) { flute(t, mhz(n.m), n.d * SD * 1.05, 0.05); voice(t, mhz(harmonyBelow(S, n.m, bar)), n.d * SD * 1.1, 'triangle', 0.03, 1800); }
+        if (i === 0) { S.chords[bar].forEach(x => pad(t, hz(x), SD * 8, 0.014)); }
+        pluck(t, hz(S.chords[bar][[0, 1, 2, 1, 0, 2, 1, 2][i]]) * 2, 0.03, 'triangle', 2600, 0.5);
+        if (i === 0 || i === 4) voice(t, hz(S.roots[bar]), SD * 3.6, 'triangle', 0.06, 600);
+        if (i === 0 && bar % 2 === 0) noiseHit(t, 0.6, 0.02, 5000, 'highpass');
+      } },
+    select: { name: '영웅의 준비', bpm: 118,
+      mel: seq('E5 - G5 E5 C5 - D5 E5  C5 - A4 - C5 E5 D5 C5  A4 - C5 F5 E5 - D5 C5  D5 - B4 - G4 - - -  E5 - G5 E5 C6 - B5 A5  G5 - E5 - B4 - E5 G5  A5 G5 F5 E5 D5 - C5 D5  E5 - D5 - C5 - - -'),
+      roots: ['C3', 'A2', 'F2', 'G2', 'C3', 'E2', 'F2', 'G2'],
+      chords: [['C4', 'E4', 'G4'], ['A3', 'C4', 'E4'], ['F3', 'A3', 'C4'], ['G3', 'B3', 'D4'], ['C4', 'E4', 'G4'], ['E3', 'G3', 'B3'], ['F3', 'A3', 'C4'], ['G3', 'B3', 'D4']],
+      play(S, s, t, bar, i, SD) {
+        const n = noteAt(S, s);
+        if (n) { pluck(t, mhz(n.m), 0.075, 'square', 2600, Math.min(0.5, n.d * SD)); pluck(t, mhz(harmonyBelow(S, n.m, bar)), 0.045, 'triangle', 2400, Math.min(0.5, n.d * SD)); }
+        if (i === 0) S.chords[bar].forEach(x => pad(t, hz(x), SD * 8, 0.01, 1600));
+        if (i % 2 === 1) S.chords[bar].forEach(x => pluck(t, hz(x), 0.022, 'triangle', 2000, 0.16));
+        const r = hz(S.roots[bar]); const bm = [1, 0, 1.5, 0, 2, 0, 1.5, 1.25][i]; if (bm) pluck(t, r * bm, 0.1, 'triangle', 900, 0.3);
+        if (i === 0 || i === 4) kick(t, 0.26);
+        if (i === 2 || i === 6) clap(t, 0.1);
+        hat(t, i % 2 ? 0.025 : 0.035);
+      } },
+    battle: { name: '광장 방어전', bpm: 128,
+      mel: seq('A4 - E5 - D5 C5 B4 C5  A4 - F4 - A4 C5 D5 C5  E5 - G5 - E5 D5 C5 D5  B4 - D5 - G4 - - -  A4 - E5 - D5 C5 B4 C5  A4 - C5 - F5 E5 D5 C5  B4 C5 D5 - G5 F5 E5 D5  E5 - G#4 - B4 - E5 -'),
+      roots: ['A2', 'F2', 'C3', 'G2', 'A2', 'F2', 'G2', 'E2'],
+      chords: [['A3', 'C4', 'E4'], ['F3', 'A3', 'C4'], ['C4', 'E4', 'G4'], ['G3', 'B3', 'D4'], ['A3', 'C4', 'E4'], ['F3', 'A3', 'C4'], ['G3', 'B3', 'D4'], ['E3', 'G#3', 'B3']],
+      play(S, s, t, bar, i, SD) {
+        const n = noteAt(S, s);
+        if (n) { const dur = n.d * SD * 0.95; voice(t, mhz(n.m), dur, 'square', 0.036, 2600); voice(t, mhz(harmonyBelow(S, n.m, bar)), dur, 'square', 0.022, 2000); voice(t, mhz(n.m) / 2, dur, 'triangle', 0.035, 1600); }
+        if (i === 0) { S.chords[bar].forEach(x => pad(t, hz(x), SD * 8, 0.011)); pad(t, hz(S.roots[bar]) * 2, SD * 8, 0.009); }
+        voice(t, hz(S.chords[bar][i % 3]) * (i >= 4 ? 2 : 1), SD * 0.8, 'triangle', 0.016, 3000);
+        const r = hz(S.roots[bar]); const m = [1, 0, 2, 0, 1.5, 0, 2, 1][i]; if (m) voice(t, r * m, SD * 0.9, 'triangle', 0.1, 900);
+        if (i === 0 || i === 4) kick(t);
+        if (i === 2 || i === 6) snare(t);
+        hat(t, i % 2 ? 0.03 : 0.05);
+      } },
+    battle2: { name: '격전', bpm: 140,
+      mel: seq('D5 - A5 - F5 E5 D5 E5  F5 - D5 - A#4 - D5 F5  E5 - G5 - E5 D5 C5 E5  A4 - C5 - E5 - - -  D5 - A5 - D6 C6 A#5 A5  A#5 - F5 - D5 - F5 A#5  A5 G5 F5 G5 A#5 - A5 G5  A5 - C#5 - E5 - A5 -'),
+      roots: ['D3', 'A#2', 'C3', 'A2', 'D3', 'A#2', 'G2', 'A2'],
+      chords: [['D4', 'F4', 'A4'], ['A#3', 'D4', 'F4'], ['C4', 'E4', 'G4'], ['A3', 'C4', 'E4'], ['D4', 'F4', 'A4'], ['A#3', 'D4', 'F4'], ['G3', 'A#3', 'D4'], ['A3', 'C#4', 'E4']],
+      play(S, s, t, bar, i, SD) {
+        const n = noteAt(S, s);
+        if (n) { const dur = n.d * SD * 0.95; brass(t, mhz(n.m), dur, 0.04); voice(t, mhz(harmonyBelow(S, n.m, bar)), dur, 'square', 0.02, 2200); }
+        if (i === 0) S.chords[bar].forEach(x => pad(t, hz(x), SD * 8, 0.01));
+        pluck(t, hz(S.chords[bar][[0, 1, 2, 1][i % 4]]) * 2, 0.026, 'sawtooth', 2400, 0.14);
+        const r = hz(S.roots[bar]); voice(t, r * (i % 2 ? 2 : 1), SD * 0.85, 'sawtooth', 0.05, 700);
+        if (i === 0 || i === 3 || i === 4) kick(t);
+        if (i === 2 || i === 6) snare(t, 0.2);
+        hat(t, 0.04);
+        if (bar === 7 && i >= 4) tom(t, 220 - (i - 4) * 30);
+      } },
+    grook: { name: '오우거의 북', bpm: 112,
+      mel: seq('E4 - - G4 F#4 - E4 -  B3 - - - E4 - G4 -  C5 - B4 - A4 - G4 -  A4 - - - F#4 - D4 -  E4 - - G4 F#4 - E4 -  B4 - - - G4 - B4 -  C5 - D5 - E5 - C5 -  B4 - - - D#4 - F#4 -'),
+      roots: ['E2', 'E2', 'C2', 'D2', 'E2', 'E2', 'C2', 'B1'],
+      chords: [['E3', 'G3', 'B3'], ['E3', 'G3', 'B3'], ['C3', 'E3', 'G3'], ['D3', 'F#3', 'A3'], ['E3', 'G3', 'B3'], ['E3', 'G3', 'B3'], ['C3', 'E3', 'G3'], ['B2', 'D#3', 'F#3']],
+      play(S, s, t, bar, i, SD) {
+        const n = noteAt(S, s);
+        if (n) { const dur = n.d * SD * 0.95; brass(t, mhz(n.m), dur, 0.05); brass(t, mhz(n.m) / 2, dur, 0.035); brass(t, mhz(harmonyBelow(S, n.m, bar)), dur, 0.025); }
+        if (i === 0) { pad(t, hz(S.roots[bar]) * 2, SD * 8, 0.02, 700); S.chords[bar].forEach(x => pad(t, hz(x), SD * 8, 0.009, 900)); }
+        const r = hz(S.roots[bar]); if (i === 0 || i === 3 || i === 6) voice(t, r, SD * 1.6, 'sawtooth', 0.06, 450);
+        if (i === 0 || i === 4) kick(t, 0.5);
+        if (i === 3 || i === 5 || i === 7) tom(t, i === 5 ? 120 : 95, 0.34);
+        if (i === 2 || i === 6) noiseHit(t, 0.25, 0.1, 900, 'bandpass');
+        if (i === 0 && bar % 2 === 0) noiseHit(t, 0.9, 0.05, 3000, 'highpass');
+      } },
+    juju: { name: '늪의 주술', bpm: 126,
+      mel: seq('D5 E5 F5 - E5 D5 C#5 D5  A4 - - - F5 - E5 -  E5 F5 G5 - F5 E5 D5 C#5  E5 - - - A4 - - -  D5 E5 F5 - A5 G5 F5 E5  G5 - A#5 - G5 - D5 -  C#5 D5 E5 - G5 F5 E5 C#5  D5 - - - A4 - - -'),
+      roots: ['D2', 'D2', 'A1', 'A1', 'D2', 'G2', 'A1', 'A1'],
+      chords: [['D3', 'F3', 'A3'], ['D3', 'F3', 'A3'], ['A2', 'C#3', 'E3'], ['A2', 'C#3', 'E3'], ['D3', 'F3', 'A3'], ['G3', 'A#3', 'D4'], ['A2', 'C#3', 'E3'], ['A2', 'C#3', 'E3']],
+      play(S, s, t, bar, i, SD) {
+        const n = noteAt(S, s);
+        if (n) { const dur = n.d * SD * 0.95; flute(t, mhz(n.m), dur, 0.055); pluck(t, mhz(harmonyBelow(S, n.m, bar)), 0.04, 'square', 1600, Math.min(0.4, dur)); }
+        if (i === 0) S.chords[bar].forEach(x => pad(t, hz(x) * 2, SD * 8, 0.008, 1400));
+        const r = hz(S.roots[bar]); const bm = [1, 0, 0, 2, 1, 0, 1.5, 0][i]; if (bm) pluck(t, r * bm, 0.12, 'triangle', 800, 0.3);
+        if ([0, 3, 6].includes(i)) wood(t, 1100, 0.09);
+        if ([2, 5, 7].includes(i)) wood(t, 760, 0.07);
+        if (i === 0 || i === 4) kick(t, 0.3);
+        noiseHit(t, 0.06, i % 2 ? 0.02 : 0.035, 5200, 'bandpass');
+      } },
+    bone: { name: '죽음의 기사', bpm: 132,
+      mel: seq('C5 - D#5 - G5 - F5 D#5  D#5 - C5 - G#4 - C5 D#5  D5 - F5 - A#5 - G#5 G5  G5 - - - B4 - D5 -  C5 - D#5 - G5 - C6 A#5  G#5 - G5 - D#5 - C5 D#5  F5 - G#5 - G5 F5 D#5 D5  D5 - B4 - G4 - - -'),
+      roots: ['C2', 'G#1', 'A#1', 'G1', 'C2', 'G#1', 'F1', 'G1'],
+      chords: [['C3', 'D#3', 'G3'], ['G#2', 'C3', 'D#3'], ['A#2', 'D3', 'F3'], ['G2', 'B2', 'D3'], ['C3', 'D#3', 'G3'], ['G#2', 'C3', 'D#3'], ['F2', 'G#2', 'C3'], ['G2', 'B2', 'D3']],
+      play(S, s, t, bar, i, SD) {
+        const n = noteAt(S, s);
+        if (n) { const dur = n.d * SD * 0.98; organ(t, mhz(n.m), dur, 0.045); organ(t, mhz(harmonyBelow(S, n.m, bar)), dur, 0.03); }
+        if (i === 0) { S.chords[bar].forEach(x => organ(t, hz(x), SD * 8, 0.012)); }
+        pluck(t, hz(S.chords[bar][[0, 1, 2, 1, 0, 2, 1, 2][i]]) * 4, 0.028, 'sawtooth', 3600, 0.12);
+        const r = hz(S.roots[bar]); if (i % 2 === 0) voice(t, r * 2, SD * 1.8, 'sawtooth', 0.05, 600);
+        if (i === 0 || i === 4) kick(t, 0.44);
+        if (i === 2 || i === 6) snare(t, 0.18);
+        if (i % 2 === 1) bell(t, 1320, 0.012);
+        if (bar % 4 === 3 && i === 7) noiseHit(t, 0.8, 0.06, 2500, 'highpass');
+      } },
+    kung: { name: '대지의 거인', bpm: 96,
+      mel: seq('G4 - - - D5 - - -  A#4 - C5 - D5 - - -  D#5 - D5 - C5 - A#4 -  C5 - - - F4 - - -  G4 - - - D5 - G5 -  F5 - D#5 - D5 - A#4 -  C5 - D#5 - D5 - C5 -  D5 - - - F#4 - A4 -'),
+      roots: ['G1', 'G1', 'D#1', 'F1', 'G1', 'D#1', 'C2', 'D2'],
+      chords: [['G2', 'A#2', 'D3'], ['G2', 'A#2', 'D3'], ['D#2', 'G2', 'A#2'], ['F2', 'A2', 'C3'], ['G2', 'A#2', 'D3'], ['D#2', 'G2', 'A#2'], ['C3', 'D#3', 'G3'], ['D3', 'F#3', 'A3']],
+      play(S, s, t, bar, i, SD) {
+        const n = noteAt(S, s);
+        if (n) { const dur = n.d * SD * 0.95; brass(t, mhz(n.m), dur, 0.05); brass(t, mhz(harmonyBelow(S, n.m, bar)), dur, 0.032); if (n.d >= 4) bell(t, mhz(n.m) * 2, 0.03); }
+        if (i === 0) { pad(t, hz(S.roots[bar]) * 2, SD * 8, 0.024, 500); S.chords[bar].forEach(x => pad(t, hz(x) * 2, SD * 8, 0.01, 1000)); }
+        const r = hz(S.roots[bar]); if (i === 0 || i === 4) voice(t, r * 2, SD * 3.5, 'sawtooth', 0.06, 380);
+        if (i === 0) kick(t, 0.6);
+        if (i === 3 || i === 4) kick(t, 0.38);
+        if (i === 4) { snare(t, 0.22); noiseHit(t, 0.5, 0.06, 900, 'lowpass'); }
+        if (i === 6 || i === 7) tom(t, i === 6 ? 110 : 85, 0.3);
+        if (bar === 7 && i >= 2) tom(t, 160 - i * 12, 0.28);
+      } }
+  };
   function sched() {
+    if (want !== cur) {
+      // crossfade: fade the old song's bus out and start the new one from its first bar
+      if (songGain) { const old = songGain; old.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.18); setTimeout(() => { try { old.disconnect(); } catch (_) {} }, 1500); }
+      songGain = ctx.createGain(); songGain.gain.setValueAtTime(0.0001, ctx.currentTime); songGain.gain.setTargetAtTime(1, ctx.currentTime + 0.05, 0.15); songGain.connect(bgmGain);
+      cur = want; step = 0; nextT = ctx.currentTime + 0.12;
+    }
+    const S = SONGS[cur], SD = 60 / S.bpm / 2;
     if (ctx.currentTime - nextT > 0.25) nextT = ctx.currentTime + 0.05;
-    while (nextT < ctx.currentTime + 0.15) { playStep(step, nextT); nextT += SD; step = (step + 1) % 64; }
+    while (nextT < ctx.currentTime + 0.15) { S.play(S, step, nextT, step >> 3, step & 7, SD); nextT += SD; step = (step + 1) % 64; }
   }
   function startMusic() {
     if (!ctx || timer) return;
     bgmGain = ctx.createGain(); bgmGain.gain.value = musicOn ? 0.55 : 0; bgmGain.connect(ctx.destination);
-    nextT = ctx.currentTime + 0.1; step = 0;
     timer = setInterval(sched, 25);
   }
+  function setSong(k) { if (!SONGS[k] || k === want) return false; want = k; return true; }
   function toggleMusic() {
     musicOn = !musicOn;
     if (ctx && bgmGain) bgmGain.gain.setTargetAtTime(musicOn ? 0.55 : 0, ctx.currentTime, 0.08);
@@ -548,7 +672,7 @@ const SFX = (function () {
       try { lib[name](); } catch (_) {}
     },
     toggle() { muted = !muted; return muted; },
-    music: { start: startMusic, mode: m => { mode = m; }, toggle: toggleMusic, get on() { return musicOn; } }
+    music: { start: startMusic, mode: setSong, name: k => SONGS[k] && SONGS[k].name, toggle: toggleMusic, get on() { return musicOn; } }
   };
 })();
 
@@ -1789,7 +1913,7 @@ function spawnEnemy(type, at) {
     // bosses scale gently with the wave (+4% per wave, +25% per lap) instead of the mobs' +10%
     e.hp = e.max = Math.round(t.hp * (1 + (wave - 1) * 0.04) * (1 + bossCycle * 0.25)); e.dmg = Math.round(e.dmg * (1 + bossCycle * 0.15));
     $('bossBar').hidden = false; $('bossName').textContent = (bossCycle ? '강화 ' : '두목 ') + t.name; $('bossFill').style.background = t.bar;
-    banner('두목 등장!', t.intro); SFX.play('boss'); SFX.music.mode('boss');
+    banner('두목 등장!', t.intro); SFX.play('boss'); playSong(BOSS_SONG[type]);
   }
   return e;
 }
@@ -1850,7 +1974,7 @@ function killEnemy(e) {
     e.vel = V3(e.lastDir.x * 9 * f, 6.5 * f, e.lastDir.z * 9 * f);
     e.spin = rand(8, 13);
   }
-  if (e.t.boss) { $('bossBar').hidden = true; banner('두목 처치!', '광장에 잠시 평화가 찾아옵니다'); shake = 0.6; hitStop = 0.14; flash(0.4); SFX.music.mode('battle'); }
+  if (e.t.boss) { $('bossBar').hidden = true; banner('두목 처치!', '광장에 잠시 평화가 찾아옵니다'); shake = 0.6; hitStop = 0.14; flash(0.4); playSong(battleSong()); }
 }
 function aoe(cx, cz, radius, dmg, kb, each, opts) {
   let n = 0;
@@ -3018,6 +3142,16 @@ function banner(text, sub, ult) {
   b.classList.add('on'); bannerTimer = ult ? 1.3 : 1.8;
 }
 
+// ================= music cues =================
+const BOSS_SONG = { boss: 'grook', shaman: 'juju', skeleton: 'bone', golem: 'kung' };
+let songTagT = null;
+function playSong(k) {
+  if (!SFX.music.mode(k)) return;
+  const el = $('songTag'); el.textContent = ''; const b = document.createElement('b'); b.textContent = '♪'; el.append(b, SFX.music.name(k));
+  el.classList.add('on'); clearTimeout(songTagT); songTagT = setTimeout(() => el.classList.remove('on'), 3200);
+}
+const battleSong = () => (wave >= 13 ? 'battle2' : 'battle');
+
 // ================= waves =================
 function startWave() {
   wave++;
@@ -3026,6 +3160,7 @@ function startWave() {
   spawnT = 0.6; bossPending = wave % BOSS_EVERY === 0;
   // boss waves are a one-on-one duel: no regular mobs
   if (bossPending) { const idx = wave / BOSS_EVERY - 1; bossType = BOSS_ORDER[idx % 4]; bossCycle = Math.floor(idx / 4); toSpawn = 0; spawnT = 1.6; }
+  playSong(bossPending ? BOSS_SONG[bossType] : battleSong());
   banner('WAVE ' + wave, bossPending ? TYPES[bossType].approach + (bossCycle ? ' (강화)' : '') : (WAVE_INTRO[wave] || ''));
   SFX.play('wave');
 }
@@ -3632,7 +3767,7 @@ function toTitle() {
   state = 'title'; showOnly('ovTitle'); $('howto').hidden = true;
   P.c.root.visible = false; aimMark.visible = false; cursor.visible = false; tgtRing.visible = false; aura.visible = false;
   buildLineup();
-  SFX.music.mode('menu');
+  playSong('title');
   $('btnPlay').focus();
 }
 function goSelect() {
@@ -3640,7 +3775,7 @@ function goSelect() {
   clearLineup();
   state = 'select'; showOnly('ovSelect');
   P.c.root.visible = true; poseIdle(P.cls, P.c);
-  SFX.play('select');
+  SFX.play('select'); playSong('select');
   heroBtns[P.cls].focus();
 }
 function startGame() {
@@ -3648,7 +3783,7 @@ function startGame() {
   resetGame();
   wave = startFrom - 1;
   if (startFrom > 1) { P.ult = 100; gap = 2.0; }
-  SFX.music.mode('battle');
+  playSong(battleSong());
   showOnly(null);
   state = 'run';
   aimMark.visible = true;
@@ -3657,14 +3792,14 @@ function startGame() {
 }
 function toSelect() {
   clearWorld(); resetGame(); clearLineup(); P.c.root.visible = true;
-  state = 'select'; showOnly('ovSelect'); aimMark.visible = false; cursor.visible = false; tgtRing.visible = false; SFX.music.mode('menu');
+  state = 'select'; showOnly('ovSelect'); aimMark.visible = false; cursor.visible = false; tgtRing.visible = false; playSong('select');
   poseIdle(P.cls, P.c);
   heroBtns[P.cls].focus();
 }
 function pause() { if (state !== 'run') return; state = 'pause'; showOnly('ovPause'); }
 function resume() { if (state !== 'pause') return; state = 'run'; showOnly(null); }
 function gameOver() {
-  state = 'over'; SFX.play('die'); SFX.music.mode('menu'); tgtRing.visible = false;
+  state = 'over'; SFX.play('die'); playSong('title'); tgtRing.visible = false;
   $('oWave').textContent = wave; $('oKills').textContent = kills; $('oGold').textContent = gold; $('oCombo').textContent = P.bestCombo;
   let best = 0;
   const key = 'waveKnightBest_' + P.cls;
