@@ -221,6 +221,11 @@ button.chip:focus-visible { outline: 2px solid var(--gold); }
   font-size: clamp(10px, 1.1vw, 18px); }
 .wrap .stage.pseudo-fs { position: fixed; inset: 0; z-index: 50; }
 .wrap .stage.fs.touch { font-size: clamp(9px, 2.3vmin, 14px); }
+/* Mobile: no double-tap zoom or tap flash anywhere on the page; game surfaces take raw touches */
+html, body { touch-action: manipulation; }
+.stage, .stage * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.stage canvas#c, .stage .stickzone, .stage.touch .slot { touch-action: none; }
+.stage .ov { touch-action: pan-y; }
 </style>
 
 <div class="wrap">
@@ -1606,6 +1611,15 @@ bindSlot('slot-q', () => useSkill('q'));
 bindSlot('slot-e', () => useSkill('e'));
 bindSlot('slot-r', () => useSkill('r'));
 bindSlot('slot-ult', () => useUlt());
+// stop double-tap and pinch zoom on the game (iOS ignores the viewport's zoom settings)
+let lastTouchEnd = 0;
+stage.addEventListener('touchend', e => {
+  const now = Date.now();
+  if (now - lastTouchEnd < 350 && !e.target.closest('button')) e.preventDefault();
+  lastTouchEnd = now;
+}, { passive: false });
+stage.addEventListener('dblclick', e => e.preventDefault());
+['gesturestart', 'gesturechange'].forEach(ev => stage.addEventListener(ev, e => e.preventDefault()));
 function inputVec(out) {
   out.set((keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0), 0, (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0));
   if (stickVec.lengthSq() > 0) { out.x += stickVec.x; out.z += stickVec.y; }
@@ -1698,13 +1712,13 @@ const TYPES = {
             spCd: 0.2, spRetry: 0.1, special: bomberBlast },
   ogre:   { make: () => makeOgre(false), hp: 190, speed: 1.8, dmg: 20, scale: 1.45, reach: 1.6, gold: [3, 5], wind: 0.62, cd: 1.6, potion: 0.15 },
   boss:   { make: () => makeOgre(true), hp: 900, speed: 1.85, dmg: 34, scale: 2.1, reach: 2.2, gold: [20, 25], wind: 0.75, cd: 1.7, potion: 1, boss: true,
-            name: '오우거 왕 · 그룩', approach: '오우거 왕 그룩이 다가옵니다', intro: '그룩이 몽둥이를 들고 나타났습니다', bar: 'linear-gradient(#e0705a, #a83a2a)', spCd: 3.6, special: ogreSpecial },
+            name: '오우거 왕 · 그룩', approach: '오우거 왕 그룩이 다가옵니다', intro: '그룩이 몽둥이를 들고 나타났습니다', bar: 'linear-gradient(#e0705a, #a83a2a)', spCd: 3.6, special: ogreSpecial, far: 7 },
   shaman: { make: makeShaman, hp: 800, speed: 2.75, dmg: 19, scale: 1.75, reach: 1.5, gold: [22, 28], wind: 0.5, cd: 1.3, potion: 1, boss: true, kite: 7.5,
-            name: '고블린 주술사 · 주주', approach: '고블린 주술사 주주가 다가옵니다', intro: '주술사가 독 안개와 고블린을 부릅니다', bar: 'linear-gradient(#9be36a, #4f9a2a)', spCd: 2.1, special: shamanSpecial },
+            name: '고블린 주술사 · 주주', approach: '고블린 주술사 주주가 다가옵니다', intro: '주술사가 독 안개와 고블린을 부릅니다', bar: 'linear-gradient(#9be36a, #4f9a2a)', spCd: 2.1, special: shamanSpecial, far: 11 },
   skeleton: { make: makeSkelKnight, hp: 800, speed: 2.7, dmg: 24, scale: 2.0, reach: 2.1, gold: [25, 30], wind: 0.6, cd: 1.4, potion: 1, boss: true,
-            name: '해골 기사 · 본', approach: '해골 기사 본이 다가옵니다', intro: '죽음의 기사가 성문을 넘어옵니다', bar: 'linear-gradient(#c9a8ff, #6a4fa8)', spCd: 3.5, special: skelSpecial },
+            name: '해골 기사 · 본', approach: '해골 기사 본이 다가옵니다', intro: '죽음의 기사가 성문을 넘어옵니다', bar: 'linear-gradient(#c9a8ff, #6a4fa8)', spCd: 3.5, special: skelSpecial, far: 7 },
   golem:  { make: makeGolem, hp: 850, speed: 1.5, dmg: 30, scale: 2.4, reach: 2.4, gold: [30, 36], wind: 0.8, cd: 1.8, potion: 1, boss: true,
-            name: '바위 골렘 · 쿵', approach: '바위 골렘 쿵이 다가옵니다', intro: '땅이 흔들리기 시작합니다', bar: 'linear-gradient(#ffb36b, #b8622a)', spCd: 3.9, special: golemSpecial }
+            name: '바위 골렘 · 쿵', approach: '바위 골렘 쿵이 다가옵니다', intro: '땅이 흔들리기 시작합니다', bar: 'linear-gradient(#ffb36b, #b8622a)', spCd: 3.9, special: golemSpecial, far: 7.5 }
 };
 const barGeo = new THREE.PlaneGeometry(1, 0.11); barGeo.translate(0.5, 0, 0);
 const barBgMat = new THREE.MeshBasicMaterial({ color: 0x2a1a18, depthTest: false });
@@ -2565,6 +2579,65 @@ function shockwave(e, cx, cz, r0, r1, dur, dmg) {
     if (!hit && !e.dead && Math.abs(Math.hypot(P.pos.x - cx, P.pos.z - cz) - R) < 0.7) { hit = true; damagePlayer(dmg, { pos: V3(cx, 0, cz) }); }
   });
 }
+// gap closers: used when the player has stayed far away for a couple of seconds
+function bossLeap(e, big) {
+  tmp2.set(P.pos.x, 0, P.pos.z); clampArena(tmp2, e.r);
+  const tx = tmp2.x, tz = tmp2.z, r = big ? 3.2 : 2.8, dur = big ? 1.25 : 1.05;
+  return {
+    dur: dur + 0.35, pose: true, lockFace: true, lift: 0, from: null,
+    start(e) {
+      this.from = e.pos.clone(); const d = toward(e); e.face = Math.atan2(d.x, d.z); SFX.play('roar');
+      eCircle(e, tx, tz, r, dur, Math.round(e.dmg * 0.95), EVIL, () => {
+        crackFx(tx, tz, r * 0.9); rocks(tx, tz, 22, 8); ringFx(tx, tz, 0.5, r * 1.6, 0xd9c9a3, 0.5, 0.9);
+        shake = Math.max(shake, 0.55); hitStop = Math.max(hitStop, 0.05); SFX.play('boom');
+        if (big) shockwave(e, tx, tz, r, 8, 0.9, Math.round(e.dmg * 0.5));
+      });
+    },
+    step(e, dt, t) {
+      const k = Math.min(1, t / dur);
+      e.pos.x = lerp(this.from.x, tx, k); e.pos.z = lerp(this.from.z, tz, k);
+      this.lift = k < 1 ? Math.sin(k * Math.PI) * (big ? 3.2 : 2.6) : 0;
+      raise(e, dt, k < 1 ? -2.9 : 0.8, k < 1 ? 8 : 30); e.c.armL.rotation.x = e.c.armR.rotation.x;
+      return k < 1;
+    }
+  };
+}
+function bossBlink(e, color, dist2, r, delay, mult, sound) {
+  return {
+    dur: delay + 0.5, pose: true, lockFace: true,
+    start(e) {
+      puff(e.pos, color, 14, 1.0); sphereFx(V3(e.pos.x, 1, e.pos.z), 0.4, 2, color, 0.3, 0.6);
+      let x, z;
+      if (dist2 < 0) { const b = V3(Math.sin(P.face), 0, Math.cos(P.face)); x = P.pos.x - b.x * -dist2; z = P.pos.z - b.z * -dist2; }
+      else { const a = rand(0, TAU); x = P.pos.x + Math.cos(a) * dist2; z = P.pos.z + Math.sin(a) * dist2; }
+      tmp2.set(x, 0, z); clampArena(tmp2, e.r); e.pos.copy(tmp2);
+      e.c.root.position.x = e.pos.x; e.c.root.position.z = e.pos.z;
+      const d = toward(e); e.face = Math.atan2(d.x, d.z);
+      puff(e.pos, color, 14, 1.0); SFX.play('blink');
+      const cx = e.pos.x, cz = e.pos.z;
+      eCircle(e, cx, cz, r, delay, Math.round(e.dmg * mult), color, () => { sphereFx(V3(cx, 0.8, cz), 0.4, r, color, 0.35, 0.6); ringFx(cx, cz, 0.5, r * 1.3, color, 0.4, 0.9); SFX.play(sound); shake = Math.max(shake, 0.25); });
+    },
+    step(e, dt, t) { raise(e, dt, t < delay ? -2.8 : 0.7, t < delay ? 10 : 30); }
+  };
+}
+function bossGap(e) {
+  if (e.type === 'boss') return bossLeap(e, false);
+  if (e.type === 'shaman') return bossBlink(e, 0x7fdc3a, 2.6, 3.2, 0.8, 1.2, 'smallboom');
+  if (e.type === 'skeleton') return bossBlink(e, 0xb48bff, -1.9, 2.6, 0.85, 1.0, 'swing');
+  if (e.type === 'golem') {
+    if (Math.random() < 0.5) return bossLeap(e, true);
+    // focused barrage: boulders keep landing where the player is standing right now
+    return {
+      dur: 1.9, pose: true, n: 0,
+      start() { SFX.play('roar'); },
+      step(e, dt, t) {
+        raise(e, dt, -2.9, 10); e.c.armL.rotation.x = e.c.armR.rotation.x;
+        if (this.n < 5 && t > 0.2 + this.n * 0.3) { this.n++; eRock(e, P.pos.x + rand(-0.8, 0.8), P.pos.z + rand(-0.8, 0.8), 1.8, 0.95, Math.round(e.dmg * 0.7), 0.5); SFX.play('throw'); }
+      }
+    };
+  }
+  return null;
+}
 function archerShot(e, dist) {
   if (dist > 15 || e.entering) return null;
   return {
@@ -3188,6 +3261,8 @@ function updateEnemies(dt, frozen) {
     if (!frozen && e.stunT <= 0) {
       e.cd -= dt; e.slowT = Math.max(0, e.slowT - dt);
       if (e.spCd !== undefined && !e.act) e.spCd -= dt;
+      // bosses notice a player who keeps their distance, and come for them
+      if (e.t.boss && !e.entering && !e.act) e.farT = dist > e.t.far ? (e.farT || 0) + dt : Math.max(0, (e.farT || 0) - dt * 2);
       const slow = e.slowT > 0 ? 0.45 : 1;
       if (e.entering) {
         // walk in through the gate opening, then start hunting the player
@@ -3202,6 +3277,11 @@ function updateEnemies(dt, frozen) {
         const A = e.act; A.t += dt * slow;
         if (A.step(e, dt * slow, A.t, dist, dir)) moving = 1;
         if (A.t >= A.dur) { if (A.end) A.end(e); e.act = null; e.spCd = e.t.spCd * (e.hp < e.max * 0.5 ? 0.65 : 1) * rand(0.85, 1.15); }
+      }
+      else if (e.t.boss && e.farT > 2.2 && e.wind <= 0) {
+        e.farT = 0;
+        const A = bossGap(e, dist);
+        if (A) { A.t = 0; e.act = A; if (A.start) A.start(e, dist, dir); dmgNum(e.pos, 2.3 * e.scale, '거리 좁히기!', 'ready'); }
       }
       else if (e.t.special && e.spCd <= 0 && e.wind <= 0 && e.recover <= 0) {
         const A = e.t.special(e, dist, dir);
