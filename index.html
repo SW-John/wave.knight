@@ -29,6 +29,17 @@ header p { margin: 0; color: var(--muted); font-size: .9rem; }
 canvas#c { display: block; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
 .vig { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 58%, rgba(10,20,14,.38) 100%); }
 .flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+.lbox { position: absolute; left: 0; right: 0; height: 0; background: #0b0a0c; pointer-events: none; transition: height .35s ease; z-index: 3; }
+.lbox.top { top: 0; } .lbox.bot { bottom: 0; }
+.stage.cine .lbox { height: 11%; }
+.stage.cine .skills, .stage.cine .stickzone, .stage.cine .combo, .stage.cine .bossbar { opacity: 0; transition: opacity .25s; }
+.cutin { position: absolute; left: 0; right: 0; top: 58%; display: grid; justify-items: start; gap: .1em; padding: .5em 8% .6em;
+  background: linear-gradient(90deg, rgba(10,8,12,.85) 0%, rgba(10,8,12,.6) 55%, transparent 100%); pointer-events: none; z-index: 4;
+  opacity: 0; transform: translateX(-12%); transition: opacity .3s, transform .45s cubic-bezier(.2,.9,.25,1.15); }
+.cutin.on { opacity: 1; transform: none; }
+.cutin small { font-size: .85em; letter-spacing: .35em; color: var(--cc, #ff8a6a); }
+.cutin b { font-family: var(--display); font-weight: 400; font-size: 2.6em; line-height: 1.05; color: #fff; text-shadow: 0 3px 0 rgba(0,0,0,.6), 0 0 22px var(--cc, #ff5a3a); }
+.cutin span { font-size: .9em; color: #e8e2da; }
 
 /* HUD */
 .hud-top { position: absolute; left: 0; right: 0; top: 0; display: flex; justify-content: space-between; align-items: flex-start;
@@ -230,6 +241,47 @@ html, body { touch-action: manipulation; }
   font-size: .82em; pointer-events: none; opacity: 0; transform: translateY(-4px); transition: opacity .4s, transform .4s; white-space: nowrap; }
 .songtag.on { opacity: 1; transform: none; }
 .songtag b { color: var(--gold); font-weight: 600; margin-right: .35em; }
+/* Relic shop */
+.up.relic { grid-template-columns: auto 1fr auto; }
+.up.relic .gem { grid-row: 1 / span 2; width: 1.6em; height: 1.6em; transform: rotate(45deg); border-radius: .3em; margin: .2em .35em;
+  background: linear-gradient(135deg, #fff 0%, var(--gc) 45%, color-mix(in srgb, var(--gc) 55%, #000) 100%); box-shadow: 0 0 .6em color-mix(in srgb, var(--gc) 60%, transparent); }
+.up.relic b { grid-column: 2; }
+.up.relic p { grid-column: 2 / -1; }
+.up.relic button { grid-column: 3; }
+.up.relic.on { outline: 2px solid var(--gold); background: color-mix(in srgb, var(--gold) 14%, var(--panel2)); }
+.up button.ghosty { background: transparent; color: var(--fg); box-shadow: inset 0 0 0 2px var(--line); }
+.forge .card { max-width: 40em; text-align: left; gap: .7em; }
+.forge h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 1.6em; color: var(--gold); display: flex; justify-content: space-between; align-items: baseline; gap: .5em; flex-wrap: wrap; }
+.forge h3 small { font-family: var(--sans); font-size: .55em; color: var(--fg); }
+.forge h3 small b { color: var(--gold); font-family: var(--display); font-weight: 400; font-size: 1.5em; font-variant-numeric: tabular-nums; }
+.forge .lead { margin: 0; font-size: .82em; color: var(--muted); }
+.ups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5em; max-height: 46vh; overflow: auto; }
+.up { display: grid; grid-template-columns: 1fr auto; gap: .25em .6em; align-items: center; background: var(--panel2); border-radius: 10px; padding: .55em .7em; min-width: 0; }
+.up b { font-family: var(--display); font-weight: 400; font-size: 1.05em; }
+.up p { margin: 0; grid-column: 1 / -1; font-size: .78em; color: var(--muted); }
+.up .lv { display: flex; gap: 3px; grid-column: 1; }
+.up .lv i { width: .9em; height: .4em; border-radius: 2px; background: #3a4a40; }
+.up .lv i.on { background: var(--gold); }
+.up button { grid-column: 2; grid-row: 1 / span 2; font: 400 .95em var(--display); color: #2b1d05; background: var(--gold); border: 0; border-radius: 99px; padding: .35em .9em; cursor: pointer; white-space: nowrap; box-shadow: 0 3px 0 var(--gold-d); }
+.up button:disabled { background: #3a4a40; color: var(--muted); box-shadow: none; cursor: default; }
+.up button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.bank { margin: 0; font-size: .85em; color: #e8efe2; text-shadow: 0 1px 3px rgba(0,0,0,.7); }
+.bank b { color: var(--gold); }
+#oBank { color: var(--gold) !important; }
+@media (max-width: 640px) { .ups { grid-template-columns: 1fr; } }
+/* Ending */
+.ov.end-ov { background: radial-gradient(ellipse at center, rgba(40,30,10,.55), rgba(10,14,11,.82)); }
+.endcard { max-width: 34em; gap: .75em; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(242,193,78,.25), 0 18px 40px rgba(0,0,0,.45); }
+.endtag { font-family: var(--display); letter-spacing: .5em; color: var(--gold); font-size: .9em; padding-left: .5em; }
+.endcard h2 { font-size: 2.5em; }
+.endcard #eStory { color: #e8efe2; }
+.credits { height: 7.5em; overflow: hidden; position: relative; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  mask-image: linear-gradient(transparent, #000 25%, #000 75%, transparent); -webkit-mask-image: linear-gradient(transparent, #000 25%, #000 75%, transparent); }
+.roll { display: grid; gap: .35em; padding-block: 7.5em; animation: roll 22s linear infinite; font-size: .9em; }
+.roll b { color: var(--gold); font-family: var(--display); font-weight: 400; font-size: 1.1em; margin-top: .4em; }
+.roll span { color: var(--muted); }
+@keyframes roll { to { transform: translateY(-100%); } }
+@media (prefers-reduced-motion: reduce) { .roll { animation: none; padding-block: .5em; } .credits { height: auto; max-height: 10em; overflow: auto; } }
 </style>
 
 <div class="wrap">
@@ -245,9 +297,10 @@ html, body { touch-action: manipulation; }
     <div class="hud-top">
       <div class="hpbox">
         <div class="who" id="whoName">기사 레온</div>
-        <div class="bar"><i id="hpFill"></i><span id="hpTxt">175 / 175</span></div>
+        <div class="bar"><i id="hpFill"></i><span id="hpTxt">200 / 200</span></div>
       </div>
       <div class="stats">
+        <div class="chip" id="sDiff">보통</div>
         <div class="chip">WAVE<b id="sWave">0</b></div>
         <div class="chip">처치<b id="sKills">0</b></div>
         <div class="chip gold">골드<b id="sGold">0</b></div>
@@ -277,6 +330,8 @@ html, body { touch-action: manipulation; }
     <div class="banner" id="banner"></div>
     <div class="hurt" id="hurt"></div>
     <div class="flash" id="flash"></div>
+    <div class="lbox top"></div><div class="lbox bot"></div>
+    <div class="cutin" id="cutin"><small></small><b></b><span></span></div>
     <div class="nums" id="nums"></div>
 
     <div class="ov title-ov" id="ovTitle">
@@ -293,8 +348,17 @@ html, body { touch-action: manipulation; }
         <div></div>
         <div class="menu">
           <button class="btn big" id="btnPlay" type="button">플레이</button>
-          <div class="row2"><button class="btn ghost" id="btnHow" type="button">조작법</button><button class="btn ghost" id="btnFs2" type="button">전체화면</button></div>
+          <div class="row2"><button class="btn ghost" id="btnForge" type="button">유물 상점</button><button class="btn ghost" id="btnHow" type="button">조작법</button><button class="btn ghost" id="btnFs2" type="button">전체화면</button></div>
+          <p class="bank" id="bankLine">보유 코인 <b id="bankCoins">0</b> · 장착 유물 <b id="bankRelic">없음</b></p>
           <p class="press" id="pressHint">Enter 또는 Space를 눌러도 시작합니다</p>
+        </div>
+      </div>
+      <div class="howto forge" id="forge" hidden>
+        <div class="card">
+          <h3>유물 상점<small>보유 코인 <b id="forgeCoins">0</b></small></h3>
+          <p class="lead">판에서 모은 코인은 쓰러지거나 그만둘 때 저장됩니다. 산 유물은 계속 남고, 그중 <b>1개만</b> 장착해서 판에 가지고 들어갑니다. 장착 효과는 모든 영웅에게 적용됩니다.</p>
+          <div class="ups" id="ups"></div>
+          <div class="btns"><button class="btn" id="btnForgeClose" type="button">닫기</button></div>
         </div>
       </div>
       <div class="howto" id="howto" hidden>
@@ -319,6 +383,11 @@ html, body { touch-action: manipulation; }
         <div class="startw" id="startW"><span>시작 웨이브</span>
           <button type="button" data-w="1" aria-pressed="true">1</button><button type="button" data-w="6" aria-pressed="false">6 · 그룩</button><button type="button" data-w="12" aria-pressed="false">12 · 주주</button><button type="button" data-w="18" aria-pressed="false">18 · 본</button><button type="button" data-w="24" aria-pressed="false">24 · 쿵</button>
         </div>
+        <div class="startw" id="diffW"><span>난이도</span>
+          <button type="button" data-d="easy" aria-pressed="false">쉬움</button><button type="button" data-d="normal" aria-pressed="true">보통</button><button type="button" data-d="hard" aria-pressed="false">어려움</button>
+        </div>
+        <p class="hint" id="diffNote"></p>
+        <p class="hint" id="relicLine">장착 유물: 없음</p>
         <div class="btns"><button class="btn ghost" id="btnBack" type="button">처음으로</button><button class="btn" id="btnStart" type="button">이 영웅으로 시작</button></div>
         <p class="hint" id="selHint">1~7 키로 고르고 Enter로 시작 · WASD·방향키 이동 · 마우스 조준 · Space 필살기 · Esc 일시정지 · B 배경음 · M 효과음 · T 자동 조준 · F11 전체화면</p>
       </div>
@@ -330,6 +399,23 @@ html, body { touch-action: manipulation; }
         <div class="btns"><button class="btn" id="btnResume" type="button">계속하기</button><button class="btn ghost" id="btnQuit" type="button">영웅 다시 고르기</button></div>
       </div>
     </div>
+    <div class="ov end-ov" id="ovEnd" hidden>
+      <div class="card endcard">
+        <div class="endtag">ENDING</div>
+        <h2>광장을 지켜냈습니다!</h2>
+        <p id="eStory"></p>
+        <div class="row">
+          <div><b id="eDiff">보통</b><span>난이도</span></div>
+          <div><b id="eWave">24</b><span>도달 웨이브</span></div>
+          <div><b id="eKills">0</b><span>처치</span></div>
+          <div><b id="eCombo">0</b><span>최대 콤보</span></div>
+          <div><b id="eTime">0:00</b><span>플레이 시간</span></div>
+        </div>
+        <p id="eBank"></p>
+        <div class="credits" aria-label="출연"><div class="roll" id="eRoll"></div></div>
+        <div class="btns"><button class="btn" id="btnEndContinue" type="button">계속 싸우기 (무한 모드)</button><button class="btn ghost" id="btnEndHome" type="button">처음으로</button></div>
+      </div>
+    </div>
     <div class="ov" id="ovOver" hidden>
       <div class="card">
         <h2>쓰러졌습니다</h2>
@@ -337,10 +423,11 @@ html, body { touch-action: manipulation; }
           <div><b id="oWave">0</b><span>도달 웨이브</span></div>
           <div><b id="oKills">0</b><span>처치</span></div>
           <div><b id="oCombo">0</b><span>최대 콤보</span></div>
-          <div><b id="oGold">0</b><span>골드</span></div>
+          <div><b id="oGold">0</b><span>코인</span></div>
         </div>
         <p id="oBest"></p>
-        <div class="btns"><button class="btn" id="btnRestart" type="button">다시 도전</button><button class="btn ghost" id="btnChange" type="button">영웅 바꾸기</button><button class="btn ghost" id="btnHome" type="button">처음으로</button></div>
+        <p id="oBank"></p>
+        <div class="btns"><button class="btn" id="btnRestart" type="button">다시 도전</button><button class="btn ghost" id="btnChange" type="button">영웅 바꾸기</button><button class="btn ghost" id="btnHome" type="button">처음으로</button><button class="btn ghost" id="btnForge2" type="button">유물 상점</button></div>
       </div>
     </div>
   </div>
@@ -594,6 +681,28 @@ const SFX = (function () {
         if (bar === 7 && i >= 2) tom(t, 160 - i * 12, 0.28);
       } }
   };
+  SONGS.victory = { name: '승리의 노래', bpm: 108,
+    mel: seq('C5 - E5 G5 C6 - G5 -  A5 - F5 - C5 - F5 A5  G5 - D5 - B4 - D5 G5  E5 - - - C5 - - -  E5 - A5 - C6 - B5 A5  A5 - G5 F5 E5 - F5 G5  G5 - F5 E5 D5 - E5 F5  E5 - D5 - C5 - - -'),
+    roots: ['C3', 'F2', 'G2', 'C3', 'A2', 'F2', 'G2', 'C3'],
+    chords: [['C4', 'E4', 'G4'], ['F3', 'A3', 'C4'], ['G3', 'B3', 'D4'], ['C4', 'E4', 'G4'], ['A3', 'C4', 'E4'], ['F3', 'A3', 'C4'], ['G3', 'B3', 'D4'], ['C4', 'E4', 'G4']],
+    play(S, s, t, bar, i, SD) {
+      const n = noteAt(S, s);
+      if (n) { const dur = n.d * SD * 0.95; brass(t, mhz(n.m), dur, 0.045); brass(t, mhz(harmonyBelow(S, n.m, bar)), dur, 0.03); if (i === 0) bell(t, mhz(n.m) * 2, 0.03); }
+      if (i === 0) { S.chords[bar].forEach(x => pad(t, hz(x), SD * 8, 0.013, 1500)); noiseHit(t, 1.2, 0.05, 4000, 'highpass'); }
+      pluck(t, hz(S.chords[bar][[0, 1, 2, 1, 0, 1, 2, 1][i]]) * 2, 0.025, 'triangle', 2600, 0.3);
+      const r = hz(S.roots[bar]); if (i === 0 || i === 4) { voice(t, r, SD * 3.5, 'triangle', 0.08, 700); tom(t, 110, 0.32); }
+      if (i === 2 || i === 6) snare(t, 0.12);
+      if (bar === 7 && i >= 2) snare(t, 0.06 + i * 0.015);
+    } };
+  SONGS.kung2 = { name: '분노한 거인', bpm: 120, mel: SONGS.kung.mel, roots: SONGS.kung.roots, chords: SONGS.kung.chords,
+    play(S, s, t, bar, i, SD) {
+      SONGS.kung.play(S, s, t, bar, i, SD);
+      hat(t, 0.045);
+      if (i % 2 === 0) kick(t, 0.32);
+      if (i === 2 || i === 6) snare(t, 0.2);
+      if (i % 2 === 1) pluck(t, hz(S.chords[bar][i % 3]) * 4, 0.022, 'sawtooth', 3200, 0.1);
+      if (i === 0) voice(t, hz(S.roots[bar]) * 4, SD * 7, 'sawtooth', 0.02, 1800);
+    } };
   function sched() {
     if (want !== cur) {
       // crossfade: fade the old song's bus out and start the new one from its first bar
@@ -707,6 +816,19 @@ const outlineMat = new THREE.ShaderMaterial({
 const toonCache = {}, basicCache = {};
 const toonShared = c => toonCache[c] || (toonCache[c] = new THREE.MeshToonMaterial({ color: c, gradientMap: grad }));
 const basicShared = c => basicCache[c] || (basicCache[c] = new THREE.MeshBasicMaterial({ color: c }));
+// grass sway: shared uniforms, ticked in updateWorld
+const SWAY = { uTime: { value: 0 }, uPlayer: { value: new THREE.Vector3(0, -99, 0) } };
+function swayPatch(sh) {
+  sh.uniforms.uTime = SWAY.uTime; sh.uniforms.uPlayer = SWAY.uPlayer;
+  sh.vertexShader = 'uniform float uTime; uniform vec3 uPlayer;\n' + sh.vertexShader.replace('#include <project_vertex>',
+    'vec4 mvPosition = vec4(transformed, 1.0);\n#ifdef USE_INSTANCING\nmvPosition = instanceMatrix * mvPosition;\n#endif\n' +
+    'float sw = clamp(position.y + 0.5, 0.0, 1.0);\n' +
+    'mvPosition.x += sin(uTime * 2.1 + mvPosition.x * 0.55 + mvPosition.z * 0.35) * 0.07 * sw;\n' +
+    'mvPosition.z += cos(uTime * 1.6 + mvPosition.z * 0.5 + mvPosition.x * 0.2) * 0.05 * sw;\n' +
+    'vec2 pd = mvPosition.xz - uPlayer.xz; float pl = length(pd);\n' +
+    'if (pl < 0.9 && pl > 0.001) { float bend = (1.0 - pl / 0.9) * 0.22 * sw; mvPosition.xz += pd / pl * bend; mvPosition.y -= bend * 0.5; }\n' +
+    'mvPosition = modelViewMatrix * mvPosition;\ngl_Position = projectionMatrix * mvPosition;');
+}
 const glowMat = (c, o) => new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o, depthWrite: false, blending: THREE.AdditiveBlending });
 
 const G = {
@@ -1046,7 +1168,7 @@ const WORLD = { mills: [], flags: [], banners: [], torches: [], chimneys: [], bu
     const c = Math.random() < 0.5 ? 0x5f9139 : 0x7cb04d;
     for (let k = 0; k < 3; k++) tufts.push({ p: [x + rand(-0.08, 0.08), 0.12, z + rand(-0.08, 0.08)], s: [0.045, rand(0.2, 0.34), 0.045], r: [rand(-0.35, 0.35), 0, rand(-0.35, 0.35)], c });
   }
-  inst(new THREE.ConeGeometry(1, 1, 4), white(), tufts, false);
+  { const gm = white(); gm.onBeforeCompile = swayPatch; gm.customProgramCacheKey = () => 'grassSway'; inst(new THREE.ConeGeometry(1, 1, 4), gm, tufts, false); }
 
   // ---------- trees, bushes, rocks ----------
   const trunks = [], blobs = [], cones = [], rocks = [];
@@ -1144,6 +1266,8 @@ function updateWorld(dt) {
   W.flags.forEach((f, i) => { f.rotation.y = Math.sin(W.t * 2.6 + i) * 0.35; f.scale.x = 1 + Math.sin(W.t * 5 + i) * 0.06; });
   W.banners.forEach((b, i) => { b.rotation.x = Math.sin(W.t * 1.8 + i * 1.3) * 0.12; });
   W.torches.forEach((f, i) => { if (!f.userData.base) f.userData.base = f.scale.clone(); const s = 1 + Math.sin(W.t * 17 + i * 3) * 0.1 + Math.sin(W.t * 31 + i) * 0.07; f.scale.copy(f.userData.base).multiplyScalar(s); });
+  SWAY.uTime.value = W.t;
+  if (typeof P !== 'undefined' && P.pos && state === 'run') SWAY.uPlayer.value.copy(P.pos); else SWAY.uPlayer.value.set(0, -99, 0);
   W.clouds.forEach(c => { c.g.position.x += c.v * dt; if (c.g.position.x > 100) c.g.position.x = -100; });
   W.butterflies.forEach(b => {
     const p = b.g.position;
@@ -1173,7 +1297,10 @@ function updateWorld(dt) {
 
 // ================= characters =================
 const shadowGeo = new THREE.CircleGeometry(0.42, 20);
-const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.22, depthWrite: false });
+const shadowTex = (() => { const cv = document.createElement('canvas'); cv.width = cv.height = 64; const g = cv.getContext('2d');
+  const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(0.55, 'rgba(0,0,0,.75)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(cv); })();
+const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, alphaMap: shadowTex, transparent: true, opacity: 0.4, depthWrite: false });
 
 function buildChar(o) {
   const mats = [];
@@ -1219,8 +1346,8 @@ function buildChar(o) {
     noLine(add(g, G.sph, skinM, [0, -0.25, 0.06 * bw], 0.035 * bw));
     arms.push(g);
   }
-  const shadow = new THREE.Mesh(shadowGeo, shadowMat); shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.015; shadow.scale.setScalar(bw); root.add(shadow);
-  return { root, model, head, legL: legs[0], legR: legs[1], armL: arms[0], armR: arms[1], mats, M, skinM, flashOn: -1,
+  const shadow = new THREE.Mesh(shadowGeo, shadowMat); shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.015; shadow.scale.setScalar(bw * 1.15); root.add(shadow);
+  return { root, model, head, legL: legs[0], legR: legs[1], armL: arms[0], armR: arms[1], mats, M, skinM, flashOn: -1, shadow, shadowBase: bw * 1.15,
     eyes, torsoMesh, torsoBase: 0.5, ph: rand(0, 6), blinkAt: rand(0.5, 3), blinkEnd: 0 };
 }
 function brows(c, color, tilt, y) {
@@ -1573,7 +1700,7 @@ function animWalk(c, t, move) {
 
 // ================= classes =================
 const CLASSES = {
-  knight: { name: '기사 레온', role: '근접 · 탱커', hp: 175, speed: 5.8, make: makeKnight,
+  knight: { name: '기사 레온', role: '근접 · 탱커', hp: 200, speed: 5.8, make: makeKnight,
     blurb: '튼튼한 갑옷과 검으로 적 무리 한가운데서 버팁니다.',
     stats: [['체력', 5], ['속도', 3], ['사거리', 1], ['난이도', 1]],
     skills: {
@@ -1600,7 +1727,7 @@ const CLASSES = {
       e: { name: '서리 고리', cd: 8, desc: '주변 적에게 피해를 주고 3초 동안 느리게 만듭니다.' },
       r: { name: '운석 낙하', cd: 11, desc: '잠시 뒤 조준 지점에 운석이 떨어집니다.' } },
     ult: { name: '유성우', color: 0xff9a4a, desc: '3초 동안 적들 머리 위로 운석 12개를 쏟아붓습니다. 이동 가능.' } },
-  berserker: { name: '광전사 브루노', role: '근접 · 파괴', hp: 155, speed: 5.6, make: makeBerserker,
+  berserker: { name: '광전사 브루노', role: '근접 · 파괴', hp: 180, speed: 5.6, make: makeBerserker,
     blurb: '거대한 도끼로 한 방 한 방을 묵직하게 내려찍습니다.',
     stats: [['체력', 4], ['속도', 3], ['사거리', 2], ['난이도', 2]],
     skills: {
@@ -1609,7 +1736,7 @@ const CLASSES = {
       e: { name: '전투 함성', cd: 12, desc: '5초 동안 공격 속도가 크게 오르고, 때릴 때마다 체력을 흡수합니다.' },
       r: { name: '회전 도끼', cd: 6, desc: '도끼를 던지면 날아갔다가 되돌아오며 두 번 벱니다.' } },
     ult: { name: '대지 분쇄', color: 0xff8a4a, desc: '앞으로 세 번 연달아 뛰며 땅을 내리쳐 충격파를 일으킵니다.' } },
-  ninja: { name: '닌자 카이', role: '근접 · 암살', hp: 115, speed: 7.0, make: makeNinja,
+  ninja: { name: '닌자 카이', role: '근접 · 암살', hp: 135, speed: 7.0, make: makeNinja,
     blurb: '쌍단검으로 눈에 보이지 않을 만큼 빠르게 연타합니다.',
     stats: [['체력', 2], ['속도', 5], ['사거리', 1], ['난이도', 4]],
     skills: {
@@ -1618,15 +1745,15 @@ const CLASSES = {
       e: { name: '수리검', cd: 4, desc: '관통하는 수리검 3개를 부채꼴로 던집니다.' },
       r: { name: '연막탄', cd: 10, desc: '연기 속의 적은 느려지고 피해를 입으며, 연기 안에 있으면 공격받지 않습니다.' } },
     ult: { name: '천 개의 칼날', color: 0xc9b6ff, desc: '시간을 멈추고 주변 적 최대 12명 사이를 순간이동하며 벱니다.' } },
-  cleric: { name: '성직자 세라', role: '근접 · 회복', hp: 145, speed: 5.8, make: makeCleric,
+  cleric: { name: '성직자 세라', role: '근접 · 회복', hp: 165, speed: 5.8, make: makeCleric,
     blurb: '빛의 망치로 싸우며 스스로를 치유하고 적을 기절시킵니다.',
     stats: [['체력', 4], ['속도', 3], ['사거리', 3], ['난이도', 2]],
     skills: {
       atk: { name: '빛의 망치', cd: 0.4, desc: '앞쪽을 휘두르고, 맞힌 적 하나마다 체력을 조금 회복합니다.' },
-      q: { name: '축복', cd: 9, desc: '체력 35 회복, 2.5초 동안 모든 공격을 막는 보호막.' },
-      e: { name: '신성 폭발', cd: 7, desc: '주변에 빛을 터뜨려 피해를 주고 1.2초 동안 기절시킵니다.' },
+      q: { name: '축복', cd: 11, desc: '체력 25 회복, 1.5초 동안 모든 공격을 막는 보호막.' },
+      e: { name: '신성 폭발', cd: 9, desc: '주변에 빛을 터뜨려 피해를 주고 0.7초 동안 기절시킵니다.' },
       r: { name: '심판의 빛', cd: 8, desc: '잠시 뒤 조준 지점에 빛의 기둥이 내리꽂힙니다.' } },
-    ult: { name: '천사 강림', color: 0xfff3c0, desc: '체력을 모두 회복하고, 3초 동안 주변 적 10명에게 차례로 빛의 기둥을 내립니다.' } },
+    ult: { name: '천사 강림', color: 0xfff3c0, desc: '체력을 절반 회복하고, 3초 동안 주변 적 10명에게 차례로 빛의 기둥을 내립니다.' } },
   gunner: { name: '해적 잭', role: '원거리 · 폭발', hp: 125, speed: 6.2, make: makePirate,
     blurb: '권총과 산탄, 화약통으로 거리를 두고 적을 날려 버립니다.',
     stats: [['체력', 3], ['속도', 4], ['사거리', 4], ['난이도', 3]],
@@ -1652,6 +1779,7 @@ addEventListener('keydown', e => {
   if (e.code === 'KeyT') { toggleAuto(); return; }
   if (state === 'title') {
     if (!$('howto').hidden) { if (e.code === 'Escape' || e.code === 'Enter') { e.preventDefault(); $('howto').hidden = true; } return; }
+    if (!$('forge').hidden) { if (e.code === 'Escape') { e.preventDefault(); closeForge(); } return; }
     if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); goSelect(); }
     return;
   }
@@ -1798,6 +1926,59 @@ let enemies = [], projs = [], pickups = [], parts = [], fxs = [], smokes = [];
 let wave = 0, toSpawn = 0, spawnT = 0, gap = 0, bossPending = false, bossType = 'boss', bossCycle = 0, startFrom = 1;
 const BOSS_ORDER = ['boss', 'shaman', 'skeleton', 'golem'], BOSS_EVERY = 6;
 let kills = 0, gold = 0, T = 0, shake = 0, hitStop = 0, slowT = 0, zoomT = 0, comboPopT = 0;
+// cinematic camera focus (boss intro / phase 2 / boss death)
+let cine = null, cineK = 0; const cineAt = new THREE.Vector3(), camFocus = new THREE.Vector3();
+let dustT = 0;
+function startCine(e, dur) { cine = { e, t: 0, dur, zoom: Math.min(0.95, Math.max(0.6, 0.42 + e.scale * 0.2)) }; cineAt.copy(e.pos); stage.classList.add('cine'); }
+let cutinTimer = 0;
+function cutin(small, name, sub, color) {
+  const el = $('cutin'); el.style.setProperty('--cc', color || '#ff8a6a');
+  el.children[0].textContent = small; el.children[1].textContent = name; el.children[2].textContent = sub || '';
+  el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); cutinTimer = 2.4;
+}
+// floating "!" over an enemy that is winding up an attack
+const alertMat = (() => { const cv = document.createElement('canvas'); cv.width = 64; cv.height = 96; const g = cv.getContext('2d');
+  g.font = 'bold 86px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.lineWidth = 12; g.strokeStyle = '#2a0c08'; g.strokeText('!', 32, 52); g.fillStyle = '#ff4a2a'; g.fillText('!', 32, 52);
+  const tx = new THREE.CanvasTexture(cv); return new THREE.SpriteMaterial({ map: tx, depthTest: false, transparent: true }); })();
+function bossDropPos() {
+  const l = Math.hypot(P.pos.x, P.pos.z);
+  const a = l > 2 ? Math.atan2(-P.pos.z, -P.pos.x) : rand(0, TAU);
+  const p = V3(P.pos.x + Math.cos(a) * 7.5, 0, P.pos.z + Math.sin(a) * 7.5);
+  const r = Math.hypot(p.x, p.z), mx = ARENA - 2.5; if (r > mx) p.multiplyScalar(mx / r);
+  return p;
+}
+// a boss drops into the square: fall, slam, roar
+function bossIntro(e) {
+  e.invuln = true; e.spawnT = 0.45; e.face = Math.atan2(P.pos.x - e.pos.x, P.pos.z - e.pos.z);
+  P.inv = Math.max(P.inv, 2.6);
+  telegraph(e.pos.x, e.pos.z, 2.2 * e.scale, 0xff5a3a, 0.5);
+  e.act = { t: 0, dur: 2.4, pose: true, lockFace: true, lift: 12, landed: false, roared: false,
+    step(e, dt, t) {
+      if (t < 0.5) { const k = 1 - t / 0.5; this.lift = k * k * 12; raise(e, dt, -2.6, 10); e.c.armL.rotation.x = -2.6; return; }
+      this.lift = 0;
+      if (!this.landed) {
+        this.landed = true;
+        ringFx(e.pos.x, e.pos.z, 0.5, 6.5, 0xffe6b0, 0.55, 0.95); crackFx(e.pos.x, e.pos.z, 3); rocks(e.pos.x, e.pos.z, 22, 8); puff(e.pos, 0xd9c9a3, 16, 1.4);
+        shake = Math.max(shake, 0.6); hitStop = Math.max(hitStop, 0.1); SFX.play('boom');
+        e.squash = 0.16;
+        const dx = P.pos.x - e.pos.x, dz = P.pos.z - e.pos.z, d = Math.hypot(dx, dz) || 1;
+        if (d < 4) { P.pos.x += dx / d * (4 - d); P.pos.z += dz / d * (4 - d); clampArena(P.pos, 0.45); }
+      }
+      if (t > 0.95 && !this.roared) {
+        this.roared = true; SFX.play('roar'); shake = Math.max(shake, 0.35);
+        ringFx(e.pos.x, e.pos.z, 0.4, 4.5, 0xff5a3a, 0.5, 0.8); sphereFx(V3(e.pos.x, 1.4 * e.scale, e.pos.z), 0.4, 3, e.t.glow || 0xff6a4a, 0.45, 0.45);
+      }
+      if (t > 0.95 && t < 2.0) {
+        raise(e, dt, -2.9, 9); e.c.armL.rotation.x = e.c.armR.rotation.x;
+        e.c.model.rotation.y = Math.sin(t * 40) * 0.05;
+        if (Math.random() < 0.3) ringFx(e.pos.x, e.pos.z, 0.3, 3.2, 0xffffff, 0.35, 0.35, 0.08);
+      } else if (t >= 2.0) { raise(e, dt, -0.2, 8); e.c.armL.rotation.x = e.c.armR.rotation.x; e.c.model.rotation.y = 0; }
+    },
+    end(e) { e.invuln = false; e.c.model.rotation.y = 0; } };
+  e.act.t = 0;
+  startCine(e, 2.6);
+}
 const kick = V3();
 const tmp = V3(), tmp2 = V3(), mv = V3(), tmpQ = new THREE.Quaternion();
 const CLS = () => CLASSES[P.cls];
@@ -1858,13 +2039,13 @@ const TYPES = {
   bomber: { make: () => makeGoblin('bomber'), hp: 26, speed: 5.0, dmg: 24, scale: 0.8, reach: 0.4, gold: [1, 2], wind: 0.3, cd: 99, potion: 0.02,
             spCd: 0.2, spRetry: 0.1, special: bomberBlast },
   ogre:   { make: () => makeOgre(false), hp: 190, speed: 1.8, dmg: 20, scale: 1.45, reach: 1.6, gold: [3, 5], wind: 0.62, cd: 1.6, potion: 0.15 },
-  boss:   { make: () => makeOgre(true), hp: 900, speed: 1.85, dmg: 34, scale: 2.1, reach: 2.2, gold: [20, 25], wind: 0.75, cd: 1.7, potion: 1, boss: true,
+  boss:   { make: () => makeOgre(true), hp: 1170, speed: 1.85, dmg: 34, scale: 2.1, reach: 2.2, gold: [20, 25], wind: 0.75, cd: 1.7, potion: 1, boss: true,
             name: '오우거 왕 · 그룩', approach: '오우거 왕 그룩이 다가옵니다', intro: '그룩이 몽둥이를 들고 나타났습니다', bar: 'linear-gradient(#e0705a, #a83a2a)', spCd: 3.6, special: ogreSpecial, far: 7 },
-  shaman: { make: makeShaman, hp: 800, speed: 2.75, dmg: 19, scale: 1.75, reach: 1.5, gold: [22, 28], wind: 0.5, cd: 1.3, potion: 1, boss: true, kite: 7.5,
+  shaman: { make: makeShaman, hp: 1040, speed: 2.75, dmg: 19, scale: 1.75, reach: 1.5, gold: [22, 28], wind: 0.5, cd: 1.3, potion: 1, boss: true, kite: 7.5,
             name: '고블린 주술사 · 주주', approach: '고블린 주술사 주주가 다가옵니다', intro: '주술사가 독 안개와 고블린을 부릅니다', bar: 'linear-gradient(#9be36a, #4f9a2a)', spCd: 2.1, special: shamanSpecial, far: 11 },
-  skeleton: { make: makeSkelKnight, hp: 800, speed: 2.7, dmg: 24, scale: 2.0, reach: 2.1, gold: [25, 30], wind: 0.6, cd: 1.4, potion: 1, boss: true,
+  skeleton: { make: makeSkelKnight, hp: 1040, speed: 2.7, dmg: 24, scale: 2.0, reach: 2.1, gold: [25, 30], wind: 0.6, cd: 1.4, potion: 1, boss: true,
             name: '해골 기사 · 본', approach: '해골 기사 본이 다가옵니다', intro: '죽음의 기사가 성문을 넘어옵니다', bar: 'linear-gradient(#c9a8ff, #6a4fa8)', spCd: 3.5, special: skelSpecial, far: 7 },
-  golem:  { make: makeGolem, hp: 850, speed: 1.5, dmg: 30, scale: 2.4, reach: 2.4, gold: [30, 36], wind: 0.8, cd: 1.8, potion: 1, boss: true,
+  golem:  { make: makeGolem, hp: 1100, speed: 1.5, dmg: 30, scale: 2.4, reach: 2.4, gold: [30, 36], wind: 0.8, cd: 1.8, potion: 1, boss: true,
             name: '바위 골렘 · 쿵', approach: '바위 골렘 쿵이 다가옵니다', intro: '땅이 흔들리기 시작합니다', bar: 'linear-gradient(#ffb36b, #b8622a)', spCd: 3.9, special: golemSpecial, far: 7.5 }
 };
 const barGeo = new THREE.PlaneGeometry(1, 0.11); barGeo.translate(0.5, 0, 0);
@@ -1901,7 +2082,8 @@ function spawnEnemy(type, at) {
     dmg: Math.round(t.dmg * (1 + (wave - 1) * 0.05)), reach: t.reach, cd: rand(0.3, 1), wind: 0, recover: 0, kb: V3(), lastDir: V3(0, 0, 1),
     flash: 0, squash: 0, recoil: 0, slowT: 0, walkT: rand(0, 6), spawnT: at ? 0 : 0.45, dead: false, deathT: 0, bar, fg, barW: w, tele, face: Math.atan2(-pos.x, -pos.z) };
   enemies.push(e);
-  if (at) puff(pos, 0x7fdc3a, 10, 0.7);
+  if (at && !t.boss) puff(pos, 0x7fdc3a, 10, 0.7);
+  if (!at) { discFx(pos.x, pos.z, 1.1, 0x6a3aa0, 0.6, 0.5); ringFx(pos.x, pos.z, 0.2, 1.4, 0xb07aff, 0.5, 0.8); puff(pos, 0x4a3a5a, 6, 0.7); }
   if (!t.boss && !at && wave >= 10 && Math.random() < Math.min(0.06 + (wave - 10) * 0.015, 0.25)) {
     // elite: bigger, tougher, golden, triple gold
     e.elite = true; e.scale *= 1.25; e.r *= 1.25; c.root.scale.setScalar(e.scale);
@@ -1913,20 +2095,26 @@ function spawnEnemy(type, at) {
     // bosses scale gently with the wave (+4% per wave, +25% per lap) instead of the mobs' +10%
     e.hp = e.max = Math.round(t.hp * (1 + (wave - 1) * 0.04) * (1 + bossCycle * 0.25)); e.dmg = Math.round(e.dmg * (1 + bossCycle * 0.15));
     $('bossBar').hidden = false; $('bossName').textContent = (bossCycle ? '강화 ' : '두목 ') + t.name; $('bossFill').style.background = t.bar;
-    banner('두목 등장!', t.intro); SFX.play('boss'); playSong(BOSS_SONG[type]);
+    SFX.play('boss'); playSong(BOSS_SONG[type]);
+    cutin((bossCycle ? '강화 ' : '') + '두목 등장', t.name, t.intro, t.bar && t.bar.match(/#[0-9a-f]{6}/i) ? t.bar.match(/#[0-9a-f]{6}/i)[0] : '#ff8a6a');
+    bossIntro(e);
   }
+  const Dd = D();
+  if (t.boss) e.hp = e.max = Math.round(e.max * Dd.boss); else { e.hp *= Dd.hp; e.max *= Dd.hp; }
+  e.dmg = Math.max(1, Math.round(e.dmg * Dd.dmg)); e.speed *= Dd.spd;
   return e;
 }
 function addGauge(v) {
   if (P.ultSeq || P.storm > 0 || state !== 'run') return;
   const before = P.ult;
-  P.ult = Math.min(100, P.ult + v);
+  P.ult = Math.min(100, P.ult + v * META.ult);
   if (before < 100 && P.ult >= 100) { SFX.play('ready'); dmgNum(P.pos, 2.2, '필살기 준비!', 'ready'); }
 }
 function hurt(e, dmg, dir, kb, opts) {
-  if (e.dead) return;
+  if (e.dead || e.invuln) return;
   opts = opts || {};
-  const crit = Math.random() < 0.15;
+  dmg *= META.dmg;
+  const crit = Math.random() < 0.15 + META.crit;
   if (crit) dmg *= 1.8;
   dmg = Math.round(dmg);
   if (e.t.shield && !e.act) {
@@ -1959,14 +2147,53 @@ function hurt(e, dmg, dir, kb, opts) {
   if (P.rage > 0 && P.cls === 'berserker') P.hp = Math.min(P.max, P.hp + 2);
   if (e.hp <= 0) killEnemy(e);
 }
+function startPhase2(e) {
+  // Kung refuses to fall: a short invulnerable transformation, then a faster, lava-fuelled second life
+  e.phase2 = true; e.invuln = true; e.enraged = true;
+  e.max = Math.round(e.max * 0.6); e.hp = e.max;
+  e.speed *= 1.3; e.dmg = Math.round(e.dmg * 1.15);
+  e.wind = 0; e.tele.visible = false; e.stunT = 0; e.slowT = 0; e.kb.set(0, 0, 0);
+  e.scale *= 1.1; e.r *= 1.1; e.c.root.scale.setScalar(e.scale);
+  e.act = { t: 0, dur: 2.4, pose: true, lift: 0,
+    step(e, dt, t) {
+      e.c.model.rotation.y = Math.sin(t * 34) * 0.07 * (1 - t / 2.4);
+      raise(e, dt, -2.9, 6); e.c.armL.rotation.x = e.c.armR.rotation.x;
+      this.lift = Math.sin(Math.min(1, t / 2.4) * Math.PI) * 0.4;
+      if (Math.random() < 0.5) particle(V3(e.pos.x + rand(-1, 1), rand(0.5, 3), e.pos.z + rand(-1, 1)), Math.random() < 0.5 ? 0xff6a2a : 0xffc04a, V3(rand(-1, 1), rand(1, 3), rand(-1, 1)), 0.6, rand(0.1, 0.2), -1);
+    },
+    end(e) {
+      e.invuln = false; e.c.model.rotation.y = 0;
+      ringFx(e.pos.x, e.pos.z, 0.5, 7, 0xff6a2a, 0.6, 0.95); crackFx(e.pos.x, e.pos.z, 3.5); rocks(e.pos.x, e.pos.z, 26, 9);
+      shake = Math.max(shake, 0.6); SFX.play('boom');
+      if (Math.hypot(P.pos.x - e.pos.x, P.pos.z - e.pos.z) < 3.2) damagePlayer(Math.round(e.dmg * 0.6), e);
+    } };
+  $('bossName').textContent = (bossCycle ? '강화 ' : '') + '분노한 골렘 · 쿵';
+  $('bossFill').style.background = 'linear-gradient(#ffcf5a, #e5402a)';
+  cutin('2 페이즈', '분노한 골렘 · 쿵', '체력 70 회복 · 더 빠르고 강해졌습니다', '#ff6a2a'); startCine(e, 2.5);
+  // reward for clearing phase 1: a breather before the harder fight
+  { const h = Math.min(70, P.max - P.hp); P.hp += h; dmgNum(P.pos, 1.9, Math.round(h), 'heal'); sparks(P.pos, 1, 0x8ff08a, 14); ringFx(P.pos.x, P.pos.z, 0.4, 2.2, 0x8ff08a, 0.5, 0.8); SFX.play('potion'); }
+  flash(0.5); hitStop = Math.max(hitStop, 0.15); shake = Math.max(shake, 0.5); zoomT = 1.2;
+  sphereFx(V3(e.pos.x, 1.5, e.pos.z), 0.5, 4, 0xff6a2a, 0.5, 0.6);
+  SFX.play('roar'); playSong('kung2');
+}
 function killEnemy(e) {
+  if (e.t.boss && e.type === 'golem' && !e.phase2) { startPhase2(e); return; }
   e.dead = true; e.hp = 0; e.bar.visible = false; e.tele.visible = false; setFlash(e.c, 0xffffff);
   kills++;
   addGauge(1.5);
   const [g0, g1] = e.t.gold, n = Math.round(rand(g0, g1 + 0.99) - 0.49);
   for (let i = 0; i < n * (e.elite ? 3 : 1); i++) dropCoin(e.pos);
-  if (Math.random() < e.t.potion) dropPotion(e.pos);
+  if (Math.random() < e.t.potion * META.potion) dropPotion(e.pos);
+  if (has('fang') && P.hp > 0) P.hp = Math.min(P.max, P.hp + 2);
   puff(e.pos, 0xe8e2d0, 10, 0.8 * e.scale);
+  ringFx(e.pos.x, e.pos.z, 0.2, 1.3 * e.scale, 0xffffff, 0.3, 0.6);
+  for (let i = 0; i < (e.t.boss ? 0 : 4); i++) particle(V3(e.pos.x + rand(-0.3, 0.3), 0.8 * e.scale, e.pos.z + rand(-0.3, 0.3)), 0xfff3c0, V3(rand(-0.6, 0.6), rand(1.6, 2.8), rand(-0.6, 0.6)), rand(0.6, 0.9), rand(0.05, 0.08), -1.5);
+  if (e.t.boss) {
+    const gc = e.phase2 ? 0xff6a2a : 0xffe08a;
+    sphereFx(V3(e.pos.x, 1.4 * e.scale, e.pos.z), 0.5, 5, gc, 0.7, 0.7);
+    ringFx(e.pos.x, e.pos.z, 0.5, 8, gc, 0.8, 0.9); ringFx(e.pos.x, e.pos.z, 0.3, 5, 0xffffff, 0.5, 0.7);
+    rocks(e.pos.x, e.pos.z, 20, 8); sparks(e.pos, 1.4 * e.scale, gc, 24);
+  }
   SFX.play('pop', 30);
   e.launch = !e.t.boss;
   if (e.launch) {
@@ -1974,7 +2201,14 @@ function killEnemy(e) {
     e.vel = V3(e.lastDir.x * 9 * f, 6.5 * f, e.lastDir.z * 9 * f);
     e.spin = rand(8, 13);
   }
-  if (e.t.boss) { $('bossBar').hidden = true; banner('두목 처치!', '광장에 잠시 평화가 찾아옵니다'); shake = 0.6; hitStop = 0.14; flash(0.4); playSong(battleSong()); }
+  if (e.t.boss && e.type === 'golem' && e.phase2 && !endingShown) {
+    // the final boss falls: slow motion, victory theme, then the ending card
+    endingShown = true; $('bossBar').hidden = true; gap = -99; startCine(e, 2.6);
+    banner('승리!', '분노한 골렘 쿵을 쓰러뜨렸습니다'); shake = 0.8; hitStop = 0.25; slowT = 1.4; zoomT = 2.0; flash(0.6);
+    playSong('victory');
+    setTimeout(() => { if (state === 'run') showEnding(); }, 2800);
+  }
+  else if (e.t.boss) { startCine(e, 1.6); slowT = 0.9; $('bossBar').hidden = true; banner('두목 처치!', '광장에 잠시 평화가 찾아옵니다'); shake = 0.6; hitStop = 0.14; flash(0.4); playSong(battleSong()); }
 }
 function aoe(cx, cz, radius, dmg, kb, each, opts) {
   let n = 0;
@@ -2527,14 +2761,14 @@ const KIT = {
         if (e.dead || e.spawnT < 0.3) continue;
         tmp.subVectors(e.pos, P.pos); tmp.y = 0;
         const dist = tmp.length();
-        if (dist < 2.2 + e.r && (dist < 0.8 || tmp.divideScalar(dist).dot(d) > 0.4)) { hurt(e, rand(28, 34), d, 4.5, { melee: true, color: 0xfff3c0 }); hit++; }
+        if (dist < 2.2 + e.r && (dist < 0.8 || tmp.divideScalar(dist).dot(d) > 0.4)) { hurt(e, rand(24, 29), d, 4.5, { melee: true, color: 0xfff3c0 }); hit++; }
       }
-      if (hit) P.hp = Math.min(P.max, P.hp + hit * 1.5);
+      if (hit) P.hp = Math.min(P.max, P.hp + Math.min(hit, 3) * 0.75);
     },
     q() {
-      const h = Math.min(35, P.max - P.hp); P.hp += h;
+      const h = Math.min(25, P.max - P.hp); P.hp += h;
       dmgNum(P.pos, 1.9, Math.round(h), 'heal');
-      P.shield = 2.5; P.cast = 0.3;
+      P.shield = 1.5; P.cast = 0.3;
       ringFx(P.pos.x, P.pos.z, 0.4, 2.6, 0xfff3c0, 0.5, 0.9);
       sphereFx(V3(P.pos.x, 0.9, P.pos.z), 0.4, 1.5, 0xfff3c0, 0.4, 0.5);
       for (let i = 0; i < 16; i++) particle(V3(P.pos.x + rand(-.6, .6), 0.2, P.pos.z + rand(-.6, .6)), i % 2 ? 0x8ff08a : 0xfff3c0, V3(0, rand(1.5, 3.5), 0), rand(0.5, 0.8), rand(0.06, 0.1), 0);
@@ -2545,7 +2779,7 @@ const KIT = {
       ringFx(P.pos.x, P.pos.z, 0.5, 4.2, 0xfff3c0, 0.45, 0.95);
       discFx(P.pos.x, P.pos.z, 3.4, 0xffe08a, 0.4, 0.35);
       sphereFx(V3(P.pos.x, 0.8, P.pos.z), 0.4, 2.6, 0xfff3c0, 0.3, 0.55);
-      aoe(P.pos.x, P.pos.z, 3.4, () => rand(28, 34), 6, e => { e.stunT = 1.2; }, { color: 0xfff3c0 });
+      aoe(P.pos.x, P.pos.z, 3.4, () => rand(28, 34), 6, e => { e.stunT = 0.7; }, { color: 0xfff3c0 });
       shake = Math.max(shake, 0.2);
       SFX.play('holy'); SFX.play('smallboom');
     },
@@ -2553,11 +2787,11 @@ const KIT = {
       tmp.set(aim.x, 0, aim.z); clampArena(tmp, 0.5);
       const x = tmp.x, z = tmp.z;
       P.cast = 0.35; P.face = Math.atan2(x - P.pos.x, z - P.pos.z);
-      pillar(x, z, 2.3, 0.55, () => rand(85, 100), true);
+      pillar(x, z, 2.3, 0.55, () => rand(70, 82), true);
     },
     ult() {
-      const h = P.max - P.hp; P.hp = P.max; if (h > 0) dmgNum(P.pos, 2, Math.round(h), 'heal');
-      P.shield = 3.2;
+      const h = Math.min(P.max - P.hp, Math.round(P.max * 0.5)); P.hp += h; if (h > 0) dmgNum(P.pos, 2, Math.round(h), 'heal');
+      P.shield = 2.0;
       const targets = enemies.filter(e => !e.dead && e.spawnT >= 0.3 && Math.hypot(e.pos.x - P.pos.x, e.pos.z - P.pos.z) < 18)
         .sort((a, b) => Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z) - Math.hypot(b.pos.x - P.pos.x, b.pos.z - P.pos.z)).slice(0, 10);
       P.ultSeq = { t: 0, dur: 3.0, mobile: true, i: 0, next: 0.25, step(dt, t) {
@@ -2565,7 +2799,7 @@ const KIT = {
         while (t >= this.next && this.i < targets.length) {
           const e = targets[this.i++]; this.next += 0.24;
           if (e.dead) continue;
-          pillar(e.pos.x, e.pos.z, 1.8, 0.25, () => rand(100, 120), false);
+          pillar(e.pos.x, e.pos.z, 1.8, 0.25, () => rand(80, 95), false);
         }
       } };
     }
@@ -2670,7 +2904,7 @@ function pillar(x, z, r, delay, dmgFn, big) {
     fx(m, 0.5, (f, k) => { mat.opacity = 0.75 * (1 - k); m.scale.x = m.scale.z = r * 0.75 * (1 - k * 0.6); }, { mat });
     ringFx(x, z, 0.3, r * 1.4, 0xffe08a, 0.45, 0.9);
     for (let i = 0; i < 14; i++) particle(V3(x + rand(-r, r) * 0.5, 0.3, z + rand(-r, r) * 0.5), 0xfff3c0, V3(rand(-1, 1), rand(3, 7), rand(-1, 1)), rand(0.4, 0.7), rand(0.06, 0.12), 2);
-    aoe(x, z, r, dmgFn, big ? 6 : 4, e => { if (big) e.stunT = Math.max(e.stunT || 0, 0.6); }, { heavy: big, color: 0xfff3c0 });
+    aoe(x, z, r, dmgFn, big ? 6 : 4, e => { if (big && !e.t.boss) e.stunT = Math.max(e.stunT || 0, 0.6); }, { heavy: big, color: 0xfff3c0 });
     shake = Math.max(shake, big ? 0.3 : 0.15);
     SFX.play('holy', 80);
   });
@@ -2983,7 +3217,54 @@ function skelSpecial(e, dist) {
   };
 }
 function dir_(e) { tmp2.set(P.pos.x - e.pos.x, 0, P.pos.z - e.pos.z); const l = tmp2.length() || 1; return tmp2.divideScalar(l); }
+function lavaPool(e, x, z) {
+  tmp2.set(x, 0, z); clampArena(tmp2, 0.5); x = tmp2.x; z = tmp2.z;
+  eRock(e, x, z, 1.6, 1.0, Math.round(e.dmg * 0.7), 0.5);
+  after(1.0, () => {
+    if (e.dead) return;
+    const mat = glowMat(0xff6a2a, 0.55), m = new THREE.Mesh(G.disc, mat);
+    m.rotation.x = -Math.PI / 2; m.position.set(x, 0.05, z); m.scale.setScalar(1.6);
+    let tick = 0.3;
+    fx(m, 4.5, (f, k, dt) => {
+      mat.opacity = (0.45 + Math.sin(T * 8) * 0.1) * (k > 0.85 ? (1 - k) / 0.15 : 1);
+      if (Math.random() < 0.4) particle(V3(x + rand(-1.2, 1.2), 0.1, z + rand(-1.2, 1.2)), 0xffa040, V3(0, rand(1, 2.5), 0), 0.5, rand(0.08, 0.14), -0.5);
+      tick -= dt;
+      if (tick <= 0) { tick = 0.5; if (!e.dead && Math.hypot(P.pos.x - x, P.pos.z - z) < 1.6) damagePlayer(Math.round(e.dmg * 0.25), { pos: V3(x, 0, z) }); }
+    }, { mat });
+  });
+}
 function golemSpecial(e, dist) {
+  if (e.phase2) {
+    const r2 = Math.random();
+    // phase 2: lava fissures - five burning lines fan out toward the player
+    if (r2 < 0.3) return {
+      dur: 1.6, pose: true, lockFace: true, lift: 0,
+      start(e) {
+        SFX.play('roar');
+        const base = Math.atan2(P.pos.x - e.pos.x, P.pos.z - e.pos.z), ox = e.pos.x, oz = e.pos.z, dmg = Math.round(e.dmg * 0.9), lines = [];
+        for (let k = 0; k < 5; k++) { const a = base + (k - 2) * 0.45, d = V3(Math.sin(a), 0, Math.cos(a)); eLine(ox, oz, d, 14, 1.4, 0.9); lines.push(d); }
+        after(0.9, () => {
+          if (e.dead) return;
+          let hit = false;
+          for (const d of lines) {
+            for (let s = 1; s < 14; s += 1.2) { const x = ox + d.x * s, z = oz + d.z * s; if (Math.hypot(x, z) > ARENA) break; particle(V3(x, 0.3, z), Math.random() < 0.5 ? 0xff6a2a : 0xffc04a, V3(rand(-0.5, 0.5), rand(2, 5), rand(-0.5, 0.5)), 0.6, rand(0.15, 0.3), 4); }
+            const px = P.pos.x - ox, pz = P.pos.z - oz, along = px * d.x + pz * d.z, perp = Math.abs(px * d.z - pz * d.x);
+            if (!hit && along > 0 && along < 14 && perp < 1.1) { hit = true; damagePlayer(dmg, { pos: V3(ox, 0, oz) }); }
+          }
+          shake = Math.max(shake, 0.4); SFX.play('boom');
+        });
+      },
+      step(e, dt, t) { raise(e, dt, t < 0.9 ? -2.9 : 0.6, t < 0.9 ? 8 : 30); e.c.armL.rotation.x = e.c.armR.rotation.x; this.lift = t < 0.9 ? Math.sin(t / 0.9 * Math.PI) * 0.5 : 0; }
+    };
+    // phase 2: lava pools - molten boulders that leave burning ground behind
+    if (r2 < 0.55) return {
+      dur: 1.5, pose: true, n: 0,
+      step(e, dt, t) {
+        raise(e, dt, -2.9, 10); e.c.armL.rotation.x = e.c.armR.rotation.x;
+        if (this.n < 3 && t > 0.25 + this.n * 0.35) { this.n++; const a = rand(0, TAU), rr = this.n === 1 ? 0 : rand(2, 5); lavaPool(e, P.pos.x + Math.cos(a) * rr, P.pos.z + Math.sin(a) * rr); SFX.play('throw'); }
+      }
+    };
+  }
   const g0 = Math.random();
   // quake - one big stomp and a single shockwave to jump over
   if (g0 < 0.26) return {
@@ -3054,7 +3335,8 @@ function useSkill(k) {
   if (P.ultSeq && !P.ultSeq.mobile) return;
   const res = KIT[P.cls][k]();
   if (res === false) return;
-  P.cd[k] = typeof res === 'number' ? res : CLS().skills[k].cd;
+  if (k === 'atk') P.punch = 0.16;
+  P.cd[k] = (typeof res === 'number' ? res : CLS().skills[k].cd) * (k === 'atk' ? 1 : META.cdr);
   if (k !== 'atk') { const s = slots[k]; s.classList.add('pop'); setTimeout(() => s.classList.remove('pop'), 120); }
 }
 function useUlt() {
@@ -3075,8 +3357,9 @@ function damagePlayer(d, src) {
   if (P.shield > 0 && state === 'run') { dmgNum(P.pos, 1.8, '막음', 'ready'); return; }
   if (P.inv > 0 || P.dash || P.roll || P.leap || (P.ultSeq && !P.ultSeq.mobile) || state !== 'run') return;
   if (inSmoke(P.pos)) { dmgNum(P.pos, 1.8, '회피', 'ready'); return; }
+  d = Math.max(1, Math.round(d * META.taken));
   P.hp = Math.max(0, P.hp - d);
-  P.inv = 0.45; P.hurtT = 0.35; shake = Math.max(shake, 0.25);
+  P.inv = 0.45; P.hurtT = 0.35; shake = Math.max(shake, 0.25); sparks(P.pos, 1, 0xff6a5a, 6); impactFx(P.pos, 1, 0xff7a6a, false);
   P.combo = 0; P.comboT = 0;
   dmgNum(P.pos, 1.7, d, 'me'); SFX.play('hurt', 80);
   if (src) { tmp.subVectors(P.pos, src.pos); tmp.y = 0; if (tmp.lengthSq() > 0) { P.pos.addScaledVector(tmp.normalize(), 0.35); clampArena(P.pos, 0.45); } }
@@ -3114,8 +3397,8 @@ function updatePickups(dt) {
     if (k.kind === 'coin') k.m.rotation.z += dt * 6; else { k.m.rotation.y += dt * 2; k.m.position.y = k.pos.y + Math.sin(T * 4) * 0.06; }
     if (k.t > 0.45 && d < 0.6) {
       k.done = true; scene.remove(k.m);
-      if (k.kind === 'coin') { gold++; SFX.play('coin', 50); }
-      else { const h = Math.min(25, P.max - P.hp); P.hp += h; dmgNum(P.pos, 1.8, h, 'heal'); sparks(P.pos, 1, 0x8ff08a, 8); SFX.play('potion'); }
+      if (k.kind === 'coin') { const gv = (1 + (Math.random() < META.gold ? 1 : 0)) * D().gold; gold += Math.floor(gv) + (Math.random() < gv % 1 ? 1 : 0); SFX.play('coin', 50); }
+      else { const h = Math.min(META.heal, P.max - P.hp); P.hp += h; dmgNum(P.pos, 1.8, h, 'heal'); sparks(P.pos, 1, 0x8ff08a, 8); SFX.play('potion'); }
     }
     if (k.t > k.life) { k.done = true; scene.remove(k.m); }
   }
@@ -3140,6 +3423,24 @@ function banner(text, sub, ult) {
   if (sub) { const s = document.createElement('small'); s.textContent = sub; b.appendChild(s); }
   b.classList.toggle('ult', !!ult);
   b.classList.add('on'); bannerTimer = ult ? 1.3 : 1.8;
+}
+
+// ================= difficulty =================
+const DIFFS = {
+  easy:   { name: '쉬움',   hp: 0.75, dmg: 0.65, boss: 0.75, spd: 0.95, sp: 1.15, gold: 0.8, note: '적이 약하고 덜 아프게 때립니다 · 코인 0.8배' },
+  normal: { name: '보통',   hp: 1,    dmg: 1,    boss: 1,    spd: 1,    sp: 1,    gold: 1,   note: '기본 난이도 · 코인 1배' },
+  hard:   { name: '어려움', hp: 1.3,  dmg: 1.3,  boss: 1.35, spd: 1.1,  sp: 0.85, gold: 1.3, note: '적이 단단하고 아프며 보스 패턴이 잦습니다 · 코인 1.3배' }
+};
+let diff = 'normal', clears = {};
+try { const d = localStorage.getItem('waveKnightDiff'); if (DIFFS[d]) diff = d; clears = JSON.parse(localStorage.getItem('waveKnightClears') || '{}') || {}; } catch (_) {}
+const D = () => DIFFS[diff];
+function renderDiff() {
+  document.querySelectorAll('#diffW button').forEach(b => {
+    const k = b.dataset.d; b.setAttribute('aria-pressed', String(k === diff));
+    b.textContent = DIFFS[k].name + (clears[k] ? ' ★' : '');
+  });
+  $('diffNote').textContent = D().note + (clears[diff] ? ' · 클리어함' : '');
+  $('sDiff').textContent = D().name;
 }
 
 // ================= music cues =================
@@ -3264,6 +3565,21 @@ function update(dt) {
   const s = animWalk(c, P.walkT, moving && !P.leap ? 1 : 0);
   c.model.position.y += P.lift;
   animPlayer(dt, moving, s);
+  // body language layered on top of each hero's own animation
+  c.root.rotation.order = 'YXZ';
+  const fwd = Math.sin(P.face) * mv.x + Math.cos(P.face) * mv.z, side = Math.cos(P.face) * mv.x - Math.sin(P.face) * mv.z;
+  const hr = P.hurtT / 0.35;
+  P.idleK = lerp(P.idleK || 0, moving || attacking ? 0 : 1, damp(4, dt));
+  const busy = P.ultSeq || P.dash || P.roll || P.leap;
+  c.root.rotation.x = lerp(c.root.rotation.x, busy ? 0 : fwd * 0.13 - hr * 0.35, damp(hr > 0 ? 30 : 10, dt));
+  c.root.rotation.z = lerp(c.root.rotation.z, busy ? 0 : -side * 0.1 + Math.sin(T * 1.7) * 0.025 * P.idleK, damp(10, dt));
+  c.head.rotation.x = -hr * 0.45 + Math.sin(T * 1.3) * 0.04 * P.idleK;
+  c.head.rotation.y = Math.sin(T * 0.7) * 0.18 * P.idleK;
+  P.punch = Math.max(0, (P.punch || 0) - dt);
+  const pk = P.punch / 0.16;
+  c.model.position.z = busy ? 0 : Math.sin(pk * Math.PI) * 0.1 - hr * 0.08;
+  if (c.shadow) c.shadow.scale.setScalar(c.shadowBase * Math.max(0.4, 1 - c.model.position.y * 0.18));
+  if ((moving && !P.leap) || P.dash) { dustT -= dt; if (dustT <= 0) { dustT = P.dash ? 0.03 : 0.16; particle(V3(P.pos.x - mv.x * 0.25 + rand(-0.1, 0.1), 0.08, P.pos.z - mv.z * 0.25 + rand(-0.1, 0.1)), 0xe0d2ad, V3(-mv.x * 0.6 + rand(-0.3, 0.3), rand(0.4, 0.9), -mv.z * 0.6 + rand(-0.3, 0.3)), rand(0.35, 0.5), rand(0.08, 0.13), 1); } }
 
   P.hurtT = Math.max(0, P.hurtT - dt);
   setFlash(c, P.hurtT > 0.2 ? 0x8a1a12 : P.rage > 0 ? 0x3a0a04 : P.storm > 0 ? 0x3a3008 : 0x000000);
@@ -3275,7 +3591,7 @@ function update(dt) {
 
   if (bossPending) {
     spawnT -= dt;
-    if (spawnT <= 0) { bossPending = false; spawnEnemy(bossType); }
+    if (spawnT <= 0) { bossPending = false; spawnEnemy(bossType, bossDropPos()); }
   } else if (toSpawn > 0) {
     spawnT -= dt;
     if (spawnT <= 0) { spawnEnemy(pickType()); toSpawn--; spawnT = Math.max(0.22, 1.0 - wave * 0.06); }
@@ -3395,6 +3711,7 @@ function updateEnemies(dt, frozen) {
         if (k2 >= 1) { scene.remove(c.root); e.remove = true; puff(e.pos, 0xe8e2d0, 4, 0.5); }
       } else {
         const k = Math.min(1, e.deathT / 0.6);
+        if (e.t.boss) for (let i = 0; i < 3; i++) particle(V3(e.pos.x + rand(-0.8, 0.8) * e.scale, rand(0.3, 1.8) * e.scale * (1 - k * 0.6), e.pos.z + rand(-0.8, 0.8) * e.scale), Math.random() < 0.5 ? 0xffe08a : 0xfff7e0, V3(rand(-0.4, 0.4), rand(1.5, 3.5), rand(-0.4, 0.4)), rand(0.6, 1.0), rand(0.05, 0.1), -1);
         c.model.rotation.x = -k * 1.5;
         c.root.scale.setScalar(e.scale * (1 - k * 0.55));
         c.root.position.y = -k * 0.3;
@@ -3408,7 +3725,8 @@ function updateEnemies(dt, frozen) {
     const dir = tmp.divideScalar(dist);
     let moving = 0;
     e.stunT = Math.max(0, (e.stunT || 0) - dt);
-    if (e.stunT > 0 && e.wind > 0) { e.wind = 0; e.tele.visible = false; }
+    if (e.stunT > 0 && e.wind > 0) { e.wind = 0; e.tele.visible = false; e.windK = 0; }
+    if (e.alert && e.wind <= 0 && e.alert.visible) e.alert.visible = false;
     if (e.t.boss && !e.enraged && e.hp < e.max * 0.5) {
       e.enraged = true; e.speed *= 1.25; e.dmg = Math.round(e.dmg * 1.15); e.stunT = 0; e.spCd = Math.min(e.spCd, 0.6);
       banner('격노!', '두목이 더 빠르고 강해집니다');
@@ -3428,13 +3746,13 @@ function updateEnemies(dt, frozen) {
         tmp2.set(gx - e.pos.x, 0, gz - e.pos.z); const gl = tmp2.length() || 0.001; tmp2.divideScalar(gl);
         e.pos.addScaledVector(tmp2, e.speed * 1.15 * slow * dt); moving = 1;
         e.face = lerpAngle(e.face, Math.atan2(tmp2.x, tmp2.z), damp(10, dt));
-        if (Math.hypot(e.pos.x, e.pos.z) < ARENA - 1.4) e.entering = false;
+        if (Math.hypot(e.pos.x, e.pos.z) < ARENA - 1.4) { e.entering = false; puff(e.pos, 0xd9c9a3, 4, 0.7); }
       }
       else if (e.spawnT < 0.45) { /* rising */ }
       else if (e.act) {
         const A = e.act; A.t += dt * slow;
         if (A.step(e, dt * slow, A.t, dist, dir)) moving = 1;
-        if (A.t >= A.dur) { if (A.end) A.end(e); e.act = null; e.spCd = e.t.spCd * (e.hp < e.max * 0.5 ? 0.65 : 1) * rand(0.85, 1.15); }
+        if (A.t >= A.dur) { if (A.end) A.end(e); e.act = null; e.spCd = e.t.spCd * (e.hp < e.max * 0.5 ? 0.65 : 1) * (e.phase2 ? 0.7 : 1) * D().sp * rand(0.85, 1.15); }
       }
       else if (e.t.boss && e.farT > 2.2 && e.wind <= 0) {
         e.farT = 0;
@@ -3450,9 +3768,15 @@ function updateEnemies(dt, frozen) {
         const k = 1 - e.wind / e.t.wind;
         c.armR.rotation.x = lerp(c.armR.rotation.x, -2.7, damp(14, dt));
         e.tele.visible = true; e.tele.scale.setScalar(0.35 + 0.65 * k);
+        e.windK = k;
+        if (!e.alert) { e.alert = new THREE.Sprite(alertMat); e.alert.renderOrder = 12; c.root.add(e.alert); }
+        e.alert.visible = true; e.alert.position.y = 1.95; e.alert.scale.set(0.3 / e.scale * (1 + (1 - k) * 0.6), 0.45 / e.scale * (1 + (1 - k) * 0.6), 1);
         if (e.wind <= 0) {
-          e.tele.visible = false;
+          e.tele.visible = false; e.windK = 0; e.lunge = 0.2; if (e.alert) e.alert.visible = false;
           c.armR.rotation.x = 0.8;
+          if (!e.t.boss) { const sw = new THREE.Group(); sw.position.set(e.pos.x, 0.7 * e.scale, e.pos.z); sw.rotation.y = e.face; const sm = glowMat(0xffffff, 0.7);
+            add(sw, new THREE.RingGeometry(0.75, 1, 18, 1, Math.PI / 2 - 0.8, 1.6), sm, [0, 0, 0], e.reach * 0.9, [-Math.PI / 2, 0, 0]);
+            fx(sw, 0.16, (f, k) => { sm.opacity = 0.7 * (1 - k); sw.scale.setScalar(1 + k * 0.25); }, { mat: sm }); }
           if (dist < e.reach + 0.45) {
             const facing = Math.sin(e.face) * dir.x + Math.cos(e.face) * dir.z;
             if (facing > 0.3 || dist < 0.9) damagePlayer(e.dmg, e);
@@ -3487,9 +3811,17 @@ function updateEnemies(dt, frozen) {
     if (c.cape && e.t.boss) c.cape.rotation.x = 0.12 + (moving ? 0.3 : 0) + Math.sin(T * 6) * 0.06;
     e.squash = Math.max(0, e.squash - dt);
     const q = e.squash / 0.16;
-    c.model.scale.set(1 + q * 0.2, 1 - q * 0.2, 1 + q * 0.2);
+    const wk = e.wind > 0 ? (e.windK || 0) : 0;
+    c.model.scale.set(1 + q * 0.2 + wk * 0.06, 1 - q * 0.2 - wk * 0.08, 1 + q * 0.2 + wk * 0.06);
     e.recoil = Math.max(0, e.recoil - dt);
-    c.model.rotation.x = -(e.recoil / 0.14) * 0.5;
+    e.lunge = Math.max(0, (e.lunge || 0) - dt);
+    if (!posed) {
+      c.model.rotation.x = -(e.recoil / 0.14) * 0.5 - wk * 0.3 + (e.lunge / 0.2) * 0.35;
+      c.model.position.z = (e.lunge / 0.2) * 0.18 - wk * 0.06;
+    } else c.model.position.z = 0;
+    if (c.shadow) c.shadow.scale.setScalar(c.shadowBase * Math.max(0.35, 1 - c.model.position.y * 0.09));
+    // heavy footfalls for big walkers
+    if (moving && e.scale > 1.3 && !e.entering) { e.stepT = (e.stepT || 0) - dt; if (e.stepT <= 0) { e.stepT = 0.32; puff(e.pos, 0xd9c9a3, 2, 0.6 * e.scale, 0.1); } }
     e.flash -= dt;
     let fl = 0x000000;
     if (e.flash > 0) fl = 0xb0b0b0;
@@ -3497,9 +3829,11 @@ function updateEnemies(dt, frozen) {
     else if (e.stunT > 0) fl = Math.floor(T * 8) % 2 ? 0x4a4010 : 0x2a2408;
     else if (e.wind > 0 && Math.floor(T * 14) % 2) fl = 0x5a0d08;
     else if (e.slowT > 0) fl = 0x123a66;
+    else if (e.phase2) fl = Math.floor(T * 4) % 2 ? 0x5a2000 : 0x3a1200;
     else if (e.enraged && Math.floor(T * 5) % 2) fl = 0x3a0a04;
     else if (e.elite) fl = 0x2e2400;
     if (e.eliteRing) e.eliteRing.rotation.z += dt * 2;
+    if (e.phase2 && Math.random() < 0.35) particle(V3(e.pos.x + rand(-0.9, 0.9), rand(0.6, 2.6), e.pos.z + rand(-0.9, 0.9)), Math.random() < 0.5 ? 0xff7a2a : 0xffc04a, V3(0, rand(1, 2.2), 0), 0.7, rand(0.06, 0.12), -0.5);
     if (c.shieldG) c.shieldG.position.z = lerp(c.shieldG.position.z, 0.2, damp(8, dt));
     if (c.fuse) c.fuse.scale.setScalar(0.05 * (1 + Math.sin(T * 30) * 0.4));
     setFlash(c, fl);
@@ -3565,10 +3899,14 @@ const camPos = V3(0, 3.4, 9.4), look = V3();
 let zoom = 1;
 function updateCamera(dt, rawDt) {
   zoomT = Math.max(0, zoomT - rawDt);
-  zoom = lerp(zoom, zoomT > 0 ? 0.72 : 1, damp(zoomT > 0 ? 10 : 4, rawDt));
+  if (cine) { if (!cine.e.dead || cine.e.c.root.parent) cineAt.copy(cine.e.pos); cine.t += rawDt; if (cine.t >= cine.dur || state !== 'run') { cine = null; stage.classList.remove('cine'); } }
+  cineK = lerp(cineK, cine ? 1 : 0, damp(cine ? 5 : 3.5, rawDt));
+  if (cineK < 0.001) cineK = 0;
+  if (cutinTimer > 0) { cutinTimer -= rawDt; if (cutinTimer <= 0) $('cutin').classList.remove('on'); }
+  zoom = lerp(zoom, cine ? cine.zoom : zoomT > 0 ? 0.72 : 1, damp(cine ? 4 : zoomT > 0 ? 10 : 4, rawDt));
   const tdist = Math.max(8.4, titleW / (2 * Math.tan(20 * Math.PI / 180) * camera.aspect));
   if (state === 'title') tmp.set(Math.sin(T * 0.22) * 1.8 * Math.min(1, camera.aspect), 2.9 * tdist / 8.4, 2.8 + tdist);
-  else if (state === 'select') tmp.set(P.pos.x, 3.4, P.pos.z + 6.2); else tmp.copy(P.pos).addScaledVector(camOff, zoom);
+  else if (state === 'select') tmp.set(P.pos.x, 3.4, P.pos.z + 6.2); else tmp.copy(camFocus.copy(P.pos).lerp(cineAt, cineK)).addScaledVector(camOff, zoom);
   camPos.lerp(tmp, damp(state === 'select' || state === 'title' ? 4 : 8, rawDt));
   camera.position.copy(camPos);
   shake = Math.max(0, shake - rawDt);
@@ -3594,7 +3932,7 @@ function updateDom(dt) {
   const sk = CLS().skills;
   for (const k in slots) {
     const reloading = k === 'atk' && P.cls === 'gunner' && P.reload > 0;
-    const s = slots[k], r = reloading ? P.reload / RELOAD : P.cd[k] / sk[k].cd;
+    const s = slots[k], r = reloading ? P.reload / RELOAD : Math.min(1, P.cd[k] / (sk[k].cd * (k === 'atk' ? 1 : META.cdr)));
     s.cdEl.style.height = Math.min(100, r * 100).toFixed(1) + '%';
     const txt = reloading ? '장전' : k !== 'atk' && P.cd[k] > 0 ? String(Math.ceil(P.cd[k])) : '';
     if (s.secEl.textContent !== txt) s.secEl.textContent = txt;
@@ -3727,7 +4065,7 @@ function clearWorld() {
 function resetGame() {
   clearWorld();
   const C = CLS();
-  P.pos.set(0, 0, 3.2); P.max = C.hp; P.hp = C.hp; P.speed = C.speed;
+  P.pos.set(0, 0, 3.2); P.max = Math.round(C.hp * META.hp); P.hp = P.max; P.speed = C.speed * META.spd;
   P.inv = 0; P.dash = null; P.roll = null; P.leap = null; P.ultSeq = null; P.spin = 0; P.swing = 0; P.cast = 0; P.hurtT = 0;
   P.storm = 0; P.rage = 0; P.axeOut = false; P.chain = 0; P.ult = 0; P.combo = 0; P.comboT = 0; P.bestCombo = 0;
   for (const k in P.cd) P.cd[k] = 0;
@@ -3738,7 +4076,107 @@ function resetGame() {
   aura.visible = false;
   $('bossBar').hidden = true;
 }
-function showOnly(id) { ['ovTitle', 'ovSelect', 'ovPause', 'ovOver'].forEach(o => { $(o).hidden = o !== id; }); stage.classList.toggle('in-title', id === 'ovTitle'); }
+// ================= relic shop: buy with saved coins, equip one =================
+const RELICS = [
+  { id: 'feather', name: '바람 깃털',   color: '#9be4ff', cost: 60,  desc: '이동 속도 +8%' },
+  { id: 'amulet',  name: '수호 부적',   color: '#f26b62', cost: 80,  desc: '최대 체력 +15%' },
+  { id: 'herbs',   name: '약초 주머니', color: '#8ff08a', cost: 60,  desc: '물약 회복량 +15, 물약이 조금 더 자주 떨어짐' },
+  { id: 'lucky',   name: '행운의 동전', color: '#f2c14e', cost: 70,  desc: '코인 획득 +25%' },
+  { id: 'eagle',   name: '매의 눈',     color: '#ffb36b', cost: 90,  desc: '치명타 확률 +6%p' },
+  { id: 'whet',    name: '숫돌',        color: '#d5dbe3', cost: 100, desc: '모든 공격 피해 +8%' },
+  { id: 'ring',    name: '분노의 반지', color: '#ff7a52', cost: 100, desc: '필살기 게이지 충전 +15%' },
+  { id: 'thorn',   name: '가시 갑옷',   color: '#a98bff', cost: 110, desc: '받는 피해 -10%' },
+  { id: 'fang',    name: '흡혈 송곳니', color: '#c8323b', cost: 120, desc: '적을 처치할 때마다 체력 2 회복' },
+  { id: 'glass',   name: '모래시계',    color: '#e8c58a', cost: 120, desc: 'Q·E·R 재사용 시간 -10%' }
+];
+const BANK_KEY = 'waveKnightBank';
+let bank = { coins: 0, owned: [], equipped: null };
+try {
+  const s = JSON.parse(localStorage.getItem(BANK_KEY) || 'null');
+  if (s && typeof s.coins === 'number') bank = { coins: s.coins, owned: Array.isArray(s.owned) ? s.owned : [], equipped: s.equipped || null };
+} catch (_) {}
+function saveBank() { try { localStorage.setItem(BANK_KEY, JSON.stringify(bank)); } catch (_) {} }
+const relic = () => RELICS.find(r => r.id === bank.equipped) || null;
+const has = id => bank.equipped === id;
+const META = {
+  get hp() { return has('amulet') ? 1.15 : 1; }, get dmg() { return has('whet') ? 1.08 : 1; }, get spd() { return has('feather') ? 1.08 : 1; },
+  get cdr() { return has('glass') ? 0.9 : 1; }, get ult() { return has('ring') ? 1.15 : 1; }, get crit() { return has('eagle') ? 0.06 : 0; },
+  get heal() { return has('herbs') ? 40 : 25; }, get potion() { return has('herbs') ? 1.4 : 1; }, get gold() { return has('lucky') ? 0.25 : 0; },
+  get taken() { return has('thorn') ? 0.9 : 1; }
+};
+let runBanked = true;
+function bankRun() {
+  if (runBanked) return 0;
+  runBanked = true;
+  bank.coins += gold; saveBank(); refreshBank();
+  return gold;
+}
+function relicText() { const r = relic(); return r ? r.name + ' (' + r.desc + ')' : '없음'; }
+function refreshBank() {
+  $('bankCoins').textContent = bank.coins; $('forgeCoins').textContent = bank.coins;
+  $('bankRelic').textContent = relic() ? relic().name : '없음';
+  $('relicLine').textContent = '장착 유물: ' + relicText();
+}
+function renderForge() {
+  refreshBank();
+  const box = $('ups'); box.textContent = '';
+  RELICS.forEach(r => {
+    const owned = bank.owned.includes(r.id), on = bank.equipped === r.id;
+    const d = document.createElement('div'); d.className = 'up relic' + (on ? ' on' : '');
+    const gem = document.createElement('span'); gem.className = 'gem'; gem.style.setProperty('--gc', r.color);
+    const nm = document.createElement('b'); nm.textContent = r.name;
+    const btn = document.createElement('button'); btn.type = 'button'; btn.id = 'relic-' + r.id;
+    if (on) { btn.textContent = '해제'; btn.className = 'ghosty'; }
+    else if (owned) btn.textContent = '장착';
+    else { btn.textContent = '구매 ' + r.cost; btn.disabled = bank.coins < r.cost; }
+    btn.addEventListener('click', () => {
+      if (bank.equipped === r.id) bank.equipped = null;
+      else if (bank.owned.includes(r.id)) bank.equipped = r.id;
+      else { if (bank.coins < r.cost) return; bank.coins -= r.cost; bank.owned.push(r.id); bank.equipped = r.id; SFX.play('coin'); }
+      SFX.play('potion'); saveBank(); renderForge();
+      const nb = $('relic-' + r.id); if (nb) nb.focus();
+    });
+    const ds = document.createElement('p'); ds.textContent = r.desc + (on ? ' · 장착 중' : owned ? ' · 보유' : '');
+    d.append(gem, nm, btn, ds); box.appendChild(d);
+  });
+}
+function openForge() { SFX.init(); $('howto').hidden = true; renderForge(); $('forge').hidden = false; const f = $('ups').querySelector('button:not(:disabled)') || $('btnForgeClose'); f.focus(); }
+function closeForge() { $('forge').hidden = true; $('btnForge').focus(); }
+refreshBank();
+let endingShown = false;
+function showEnding() {
+  state = 'ending'; tgtRing.visible = false;
+  // sweep up coins still lying on the ground (the boss drops a pile) before saving
+  for (const k of pickups) if (k.kind === 'coin') { gold += 1; scene.remove(k.m); k.done = true; }
+  pickups = pickups.filter(k => !k.done);
+  const got = bankRun();
+  clears[diff] = true; try { localStorage.setItem('waveKnightClears', JSON.stringify(clears)); } catch (_) {}
+  const C = CLS();
+  $('eStory').textContent = '도적과 고블린 무리, 오우거 왕 그룩, 고블린 주술사 주주, 해골 기사 본, 그리고 분노한 골렘 쿵까지. ' + C.name + '의 활약으로 마을 광장에 다시 평화가 찾아왔습니다.';
+  $('eDiff').textContent = D().name; $('eWave').textContent = wave; $('eKills').textContent = kills; $('eCombo').textContent = P.bestCombo;
+  const s = Math.floor(T); $('eTime').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  // clear reward on top of the coins picked up during the run
+  const bonus = { easy: 10, normal: 15, hard: 20 }[diff] || 15;
+  bank.coins += bonus; saveBank(); refreshBank();
+  $('eBank').textContent = '코인 ' + got + '개 + 클리어 보상 ' + bonus + '개를 저장했습니다 · 보유 ' + bank.coins + (relic() ? ' · 함께한 유물: ' + relic().name : '');
+  const roll = $('eRoll'); roll.textContent = '';
+  const line = (tag, txt) => { const el = document.createElement(tag); el.textContent = txt; roll.appendChild(el); };
+  line('b', '영웅'); ORDER.forEach(id => line('span', CLASSES[id].name + ' · ' + CLASSES[id].role));
+  line('b', '두목'); ['오우거 왕 그룩', '고블린 주술사 주주', '해골 기사 본', '바위 골렘 쿵', '분노한 골렘 쿵'].forEach(n => line('span', n));
+  line('b', '마을을 지킨 영웅'); line('span', C.name + ' (' + D().name + ')');
+  line('b', '감사합니다'); line('span', '계속 싸우기를 누르면 더 강해진 두목들이 기다립니다');
+  // a little confetti over the plaza
+  const cols = [0xf2c14e, 0xffffff, 0xe5484d, 0x4f8ef0, 0x5fbf5a, 0xa98bff];
+  for (let i = 0; i < 140; i++) particle(V3(P.pos.x + rand(-6, 6), rand(4, 9), P.pos.z + rand(-6, 6)), cols[i % cols.length], V3(rand(-1, 1), rand(-0.5, 1), rand(-1, 1)), rand(2.2, 3.8), rand(0.06, 0.12), 1.2);
+  showOnly('ovEnd');
+  $('btnEndContinue').focus();
+}
+function continueAfterEnding() {
+  gold = 0; runBanked = false; gap = 0.6;
+  state = 'run'; showOnly(null); playSong(battleSong());
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+}
+function showOnly(id) { ['ovTitle', 'ovSelect', 'ovPause', 'ovOver', 'ovEnd'].forEach(o => { $(o).hidden = o !== id; }); stage.classList.toggle('in-title', id === 'ovTitle'); }
 const lineup = [];
 function buildLineup() {
   if (lineup.length) return;
@@ -3763,8 +4201,9 @@ function layoutLineup() {
 }
 function clearLineup() { lineup.forEach(c => scene.remove(c.root)); lineup.length = 0; }
 function toTitle() {
+  bankRun();
   clearWorld(); resetGame();
-  state = 'title'; showOnly('ovTitle'); $('howto').hidden = true;
+  state = 'title'; showOnly('ovTitle'); $('howto').hidden = true; $('forge').hidden = true; refreshBank();
   P.c.root.visible = false; aimMark.visible = false; cursor.visible = false; tgtRing.visible = false; aura.visible = false;
   buildLineup();
   playSong('title');
@@ -3783,6 +4222,8 @@ function startGame() {
   resetGame();
   wave = startFrom - 1;
   if (startFrom > 1) { P.ult = 100; gap = 2.0; }
+  endingShown = false; renderDiff(); cine = null; cineK = 0; stage.classList.remove('cine'); $('cutin').classList.remove('on');
+  runBanked = false;
   playSong(battleSong());
   showOnly(null);
   state = 'run';
@@ -3791,7 +4232,9 @@ function startGame() {
   if (touchMode) { try { stage.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) {} }
 }
 function toSelect() {
+  bankRun();
   clearWorld(); resetGame(); clearLineup(); P.c.root.visible = true;
+  P.c.root.rotation.x = P.c.root.rotation.z = 0; P.c.head.rotation.set(0, 0, 0); P.c.model.position.z = 0;
   state = 'select'; showOnly('ovSelect'); aimMark.visible = false; cursor.visible = false; tgtRing.visible = false; playSong('select');
   poseIdle(P.cls, P.c);
   heroBtns[P.cls].focus();
@@ -3802,9 +4245,11 @@ function gameOver() {
   state = 'over'; SFX.play('die'); playSong('title'); tgtRing.visible = false;
   $('oWave').textContent = wave; $('oKills').textContent = kills; $('oGold').textContent = gold; $('oCombo').textContent = P.bestCombo;
   let best = 0;
-  const key = 'waveKnightBest_' + P.cls;
+  const key = 'waveKnightBest_' + P.cls + (diff === 'normal' ? '' : '_' + diff);
   try { best = +localStorage.getItem(key) || 0; if (wave > best && startFrom === 1) localStorage.setItem(key, String(wave)); } catch (_) {}
   $('oBest').textContent = startFrom > 1 ? WAVE_NOTE + startFrom + '부터 시작한 판은 최고 기록에 넣지 않습니다.' : (wave > best ? '새 최고 기록입니다! ' : '최고 기록: WAVE ' + best + ' ') + '(' + CLS().name + ')';
+  const got = bankRun();
+  $('oBank').textContent = '코인 ' + got + '개를 저장했습니다 · 보유 ' + bank.coins + ' (유물 상점에서 사용)';
   setTimeout(() => { if (state === 'over') showOnly('ovOver'); }, 800);
 }
 function setTog(id, on) { const b = $(id); b.setAttribute('aria-pressed', String(on)); b.querySelector('b').textContent = on ? 'ON' : 'OFF'; }
@@ -3815,16 +4260,26 @@ $('btnStart').addEventListener('click', startGame);
 $('btnRestart').addEventListener('click', startGame);
 $('btnChange').addEventListener('click', toSelect);
 $('btnPlay').addEventListener('click', goSelect);
+$('btnForge').addEventListener('click', openForge);
+$('btnForgeClose').addEventListener('click', closeForge);
+$('btnForge2').addEventListener('click', () => { toTitle(); openForge(); });
 $('btnHow').addEventListener('click', () => { SFX.init(); $('howto').hidden = false; $('btnHowClose').focus(); });
 $('btnHowClose').addEventListener('click', () => { $('howto').hidden = true; $('btnHow').focus(); });
 $('btnBack').addEventListener('click', toTitle);
 const WAVE_NOTE = '웨이브 ';
+document.querySelectorAll('#diffW button').forEach(b => b.addEventListener('click', () => {
+  diff = b.dataset.d; try { localStorage.setItem('waveKnightDiff', diff); } catch (_) {}
+  renderDiff(); SFX.play('select');
+}));
+renderDiff();
 document.querySelectorAll('#startW button').forEach(b => b.addEventListener('click', () => {
   startFrom = +b.dataset.w;
   document.querySelectorAll('#startW button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
   SFX.play('select');
 }));
 $('btnHome').addEventListener('click', toTitle);
+$('btnEndContinue').addEventListener('click', continueAfterEnding);
+$('btnEndHome').addEventListener('click', toTitle);
 $('btnResume').addEventListener('click', resume);
 $('btnQuit').addEventListener('click', toSelect);
 $('btnMute').addEventListener('click', e => { toggleMute(); e.currentTarget.blur(); });
