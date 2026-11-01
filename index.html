@@ -1566,13 +1566,29 @@ const UA_MOBILE = /Android|iPhone|iPad|iPod|Mobile|Silk|Kindle/i.test(navigator.
 // any mouse or touchpad on the device (a touch laptop has one) means desktop controls
 const HAS_FINE = matchMedia('(any-pointer: fine)').matches || matchMedia('(any-hover: hover)').matches;
 const IS_MOBILE = UA_MOBILE || (!HAS_FINE && matchMedia('(pointer: coarse)').matches);
+const PC_HINTS = { sel: $('selHint').textContent, press: $('pressHint').textContent };
+let deskUser = false; // set once a keyboard or mouse is used; the mobile layout stays off after that
 function enableTouch() {
-  if (touchMode || !IS_MOBILE) return;
+  if (touchMode || !IS_MOBILE || deskUser) return;
   touchMode = true; stage.classList.add('touch');
   $('selHint').textContent = '영웅을 두 번 누르면 시작 · 왼쪽 조이스틱으로 이동 · 오른쪽 버튼으로 공격과 기술';
+  $('pressHint').textContent = '플레이를 눌러 시작하세요';
 }
+function disableTouch() {
+  if (!touchMode) return;
+  touchMode = false; stage.classList.remove('touch');
+  stickVec.set(0, 0); attackHeld = false;
+  document.querySelectorAll('.slot.held').forEach(s => s.classList.remove('held'));
+  $('selHint').textContent = PC_HINTS.sel; $('pressHint').textContent = PC_HINTS.press;
+  setTimeout(resize, 60);
+}
+function noteDesktop() { deskUser = true; disableTouch(); }
 enableTouch();
 addEventListener('pointerdown', e => { if (e.pointerType === 'touch') enableTouch(); }, { capture: true });
+// a real keyboard press or mouse movement means a desktop setup: drop the on-screen controls
+const SOFT_KEYS = ['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Unidentified', 'Process', 'Dead'];
+addEventListener('keydown', e => { if (e.key && !SOFT_KEYS.includes(e.key) && !e.isComposing) noteDesktop(); }, { capture: true });
+addEventListener('pointermove', e => { if (e.pointerType === 'mouse' && Math.abs(e.movementX) + Math.abs(e.movementY) > 2) noteDesktop(); }, { capture: true });
 (function joystick() {
   const zone = $('stickZone'), stick = $('stick'), knob = $('knob');
   let pid = null, cx = 0, cy = 0;
@@ -3719,7 +3735,6 @@ chooseClass('knight');
 heroBtns.knight.dataset.armed = '1';
 aimMark.visible = false; cursor.visible = false;
 toTitle();
-if (touchMode) $('pressHint').textContent = '플레이를 눌러 시작하세요';
 
 let prev = performance.now();
 function loop(now) {
